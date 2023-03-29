@@ -1,0 +1,120 @@
+@me ~by:lubin
+	~area:search
+		mettre un bouton "rechercher" à la place de "voir sur la carte" (c'est plus clair surtout sur mobile)
+		~responsive quand on rentre les informations, faire descendre le clavier quand on fait ok
+		~notsure enlever la mise à jour automatique de la recherche
+		photo cliquable comme le reste du bloc
+		~styling bouton "voir sur la carte" et "retour à la liste" en bleu
+		~styling bouton "déposer une annonce" en bleu et aussi gros que le bouton "voir sur la carte"
+		~styling bouton "connexion" de la même taille de "déposer une annonce"
+		~notsure choisir si le tri est croissant ou décroissant
+	~area:navigation
+		~responsive
+			bouton "déposer une annonce" en bleu
+			mettre des majuscules à "recherche", "administration" et "mon compte"
+
+		sur ordi, ajouter le bouton "déposer une annonce" en bleu
+
+		~notsure ~bug le bouton mes annonces n'apparait pas quand je suis connecté en admin, j'arrive à y accéder que en faisant "déposer une annonce" quand je ne suis pas connecté
+		~feature création d'annonces par les admins:
+			il arrive souvent qu'on en ajoute nous même : dans ce cas, créer un type d'annonce spécial où on rentre les coordonnées du proprio mais l'annonce appartient à l'admin et apparait dans mes annonces. Normalement ça arrivera plus beaucoup mais vaut mieux prévoir le coup pour la première année et pour les habitués
+		~notsure bouton aide qui renvoie sur le mail loca7. Mettre ce bouton un peu partout.
+
+	~area:accounts
+		/login: ajouter un espace entre "Mot de passe perdu ?" et le bouton "Réinitialisez-le"
+		/login: expliquer quand il y a redirection:
+			- [ ] depuis /appartements/ajouter: "Vous devez vous connecter pour déposer et gérer vos annonces. Si vous n'avez pas de compte, créez-en un !"
+		~notsure /register: mettre nom et prénom séparement:
+			"nom complet" pas assez clair (faut penser aux petits vieux)
+		/register: obligatoire : que le nom et mail
+		/register: remplacer "optionnel" par "conseillé"
+		/register: le picto information par rapport au temps de hack du mdp ne renvoie vers rien
+
+	~area:add
+		plus d'espace entre "Nouvelle annonce", "Votre annonce sera validée ....." et "type de logement"
+		mettre explication validation par admin plus en valeur:
+			- [ ]
+			- [ ] La remettre au-dessus du bouton "Poster"
+
+		~bug barre noire très bizarre pour le choix du type de logement -> l'enlever ou la mettre en blanc
+		mettre des * pour les champs obligatoires
+
+		ne pas mettre charges et caution obigatoire:
+			- [ ] prendre exemple sur l'ancien loca7 pour le petit texte à ajouter
+
+		mettre la date du jour par défaut
+		~notsure interdire une date inférieure à celle du jour : 
+			j'ai essayé et ça me renvoie sur une page qui fait "oops, impossible de poster l'annonce"
+
+		Ajouter plus d'aspects:
+			- [ ] Ascenseur
+			- [ ] Fibre
+			- [ ] ...
+			Plus il y en a, mieux c'est
+
+		~bug <InputRichText> liste et lien ne fonctionne pas
+		<InputRichText> laisser le bouton gras/italique "enfoncé" quand on est sur un texte gras/italique
+		<InputImages> mettre "cliquez dans cette zone" avant "glissez-déposer vos fichiers ici"
+
+	~area:manage
+		bouton "nouvelle annonce" en bleu et plus gros
+		préciser le nombre d'annonce à côté de "mes annonces"
+		préciser quelles annonces sont en attente de validation, de modification et archivées, ou alors faire un système de filtrage comme dans le panneau administration
+		changer les boutons dans les blocs, mettre : "Modifier" "Archiver" "Supprimer" pour les annonces en ligne et "Modifier" "Mettre en ligne" "Supprimer" pour les annonces archivées
+		~bug la suppression d'annonce ne fonctionne pas
+
+	~area:admin
+		sur PC, possibilité de cliquer sur la photo, le n°, prix, adresse, nom, signalement et date, le tout renvoyant vers l'annonce
+		~responsive ~bug arrière plan des boutons d'action transparent
+		~responsive faire descendre le clavier quand on fait OK sur la barre de recherche
+		~feature catégorie "tout":
+			mettre une couleur sur le numéro de l'annonce : vert pour en attente, orange pour archivées
+		~notsure ~feature catégorie "signalées" 
+			affiche la raison du signalement : boutons archiver-modifier-supprimer
+		~bug appartements pas triés par date de dernière modification
+
+		~feature pastille orange pour le nombre d'annonce en attente
+		~bug ~important quand on appuie sur valider ou publier, le bouton reste enfoncé jusqu'à ce qu'on clique ailleurs:
+			et l'annonce ne bouge pas de la catégorie "en attente". Quand on refresh, on tombe sur une page "Oops! erreur interne", mais quand on revient sur administration, l'annonce a bien été validée et est mainteneant dans la catégorie "en ligne".
+
+		~feature boutons pour la catégorie "en ligne" :
+			"Archiver" "Modifier" "Suppr.", avec supprimer qui supprime définitivement
+		~bug ~important "suppr." ne fonctionne pas depuis "en ligne"
+
+		~typo mettre "archivées"
+		changer boutons pour la catégorie "archivées" 
+			- Publier 
+			- Modifier 
+			- Suppr.
+
+	~area:view
+		enlever calendrier et contact, envoyer un mail et appeler suffit
+		~responsive plus d'espace entre téléphone et les boutons modifier-supprimer-archiver
+		~bug ~important la photo de mon annonce test n'apparaît pas
+			format ? (c'est un screen sur huawei, pourtant c'est un jpg) elle est importée depuis de mon téléphone.
+		~feature ajouter un bouton accueil en bleu en haut au milieu qui revient à la page d'accueil
+		ajouter de l'espace entre "Description" et le texte de description
+		~notsure mettre la police du texte de description en moins gras, en normal ou light
+		~feature ~awaiting mettre les noms de famille des proprio en majuscule
+		plus d'espace entre le bloc de gauche avec les infos et le bloc de description
+			je trouve que la description ne se démarque pas assez
+		~bug ~important le signalement de fonction pas:
+			"oops! erreur interne"
+
+		~notsure fond photo blanc plutôt que noir
+		~nosture ~possibilité de les afficher en plus grand
+		~nosture animation de défilement des photos
+
+	~area:edit
+		bandeau modifications en attente : en rouge avec le texte centré
+		~notsure quand il n'y a aucune modification, ne pas faire apparaitre en tant que modification
+		~notsure [PC] attention : quand on modifie le prix par exemple, quand on fait entrée ça enregistre l'ensemble des modifications et on revient sur l'annonce : faut enlever ça pcq les gens vont le faire à chaque fois et il y a aura 10 000 modifications
+
+	~area:account
+		profil: préciser "Ces informations apparaitront sur toutes vos annonces"
+
+	~feature
+		tutos interactifs : 
+			lancer le tuto -> un cercle apparaît sur les boutons sur lesquels cliquer et il est impossible de cliquer ailleurs
+			tutos pour : créer un compte, poster une annonce, modifier une annonce, archiver une annonce, remettre une annonce en ligne
+		faire un arbre des admins avec nom prénom années AE
