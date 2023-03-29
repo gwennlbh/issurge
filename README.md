@@ -34,6 +34,7 @@ Indentation is done with tab characters only.
 - **Tags:** Prefix a word with `~` to add a label to the issue
 - **Assignees:** Prefix with `@` to add an assignee. The special assignee `@me` is supported.
 - **Milestone:** Prefix with `%` to set the milestone
+- **Comments:**  You can add comments by prefixing a line with `//`
 - **Description:** To add a description, finish the line with `:`, and put the description on another line (or multiple), just below, indented once more than the issue's line. Exemple:
    ```
    My superb issue ~some-tag:
