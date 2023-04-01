@@ -74,7 +74,35 @@ class Issue(NamedTuple):
         return result
 
     def submit(self):
+        remote_url = urlparse(
+            subprocess.run(["git", "remote", "get-url", "origin"]).stdout.decode()
+        )
+        if remote_url.hostname == "github.com":
+            self._github_submit()
+        else:
+            self._gitlab_submit()
+
+    def _gitlab_submit(self):
         command = ["glab", "issue", "new"]
+        if self.title:
+            command += ["-t", self.title]
+        command += ["-d", self.description or ""]
+        for a in self.assignees:
+            command += ["-a", a if a != "me" else "@me"]
+        for l in self.labels:
+            command += ["-l", l]
+        if self.milestone:
+            command += ["-m", self.milestone]
+        command.extend(self._cli_options["<glab-args>"])
+        if self._cli_options["--dry-run"] or self._cli_options["--debug"]:
+            print(
+                f"{'Would run' if self._cli_options['--dry-run'] else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
+            )
+        if not self._cli_options["--dry-run"]:
+            subprocess.run(command)
+
+    def _github_submit(self):
+        command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
         command += ["-d", self.description or ""]
