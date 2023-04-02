@@ -11,11 +11,11 @@ scripts = { issurge = "issurge.main:run" }
 python = "^3.10"
 rich = "^13.3.3"
 docopt = "^0.6.2"
-ward-coverage = {git = "https://github.com/petereon/ward-coverage.git"}
 
 
 [tool.poetry.group.dev.dependencies]
 ward = "^0.67.2b0"
+ward-coverage = {git = "https://github.com/petereon/ward-coverage.git"}
 
 [build-system]
 requires = ["poetry-core"]
