@@ -67,3 +67,19 @@ One issue
 
 Another issue.
 ```
+
+### One-shot mode
+
+You can also create a single issue directly from the command line with `issurge new`.
+
+If you end the line with `:`, issurge will prompt you for more lines.
+
+```sh-session
+$ issurge new ~tag1 a tag right there @me :
+Please enter a description for the issue (submit 2 empty lines to finish):
+> Basically allow users to enter an issue fragment directly on the command line with a subcommand, and if it expects a description, prompt for it
+> 
+> 
+Submitting add an interactive "one-shot"  (...) ~enhancement @me [...]
+Running gh issue new -t "add an interactive \"one-shot\" mode" -b "Basically allow users to enter an issue fragment directly on the command line with a subcommand, and if it expects a description, prompt for it" -a @me -l enhancement
+```
