@@ -6,6 +6,11 @@
   "engines": {
     "vscode": "^1.77.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ewen-lbh/issurge",
+    "directory": "vscode-extension"
+  },
   "categories": [
     "Programming Languages"
   ],
