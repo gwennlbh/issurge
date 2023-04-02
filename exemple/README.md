@@ -8,7 +8,7 @@ Running with options: {'--': False,
  '--dry-run': True,
  '--help': False,
  '<file>': 'issues',
- '<glab-args>': []}
+ '<submitter-args>': []}
 @me ~by:lubin                                            Making children from  ~by:lubin @me
 ~area:search                                                     Making children from  ~by:lubin ~area:search @me
 mettre un bouton "rechercher" à la place de "voir                        Made mettre un bouton "rechercher"  (...) ~by:lubin ~area:search @me
@@ -189,4 +189,3 @@ tutos pour : créer un compte, poster une annonce, modifier une annonce, archive
 " -a @me -l feature -l by:lubin
 Would run glab issue new -t "faire un arbre des admins avec nom prénom années AE" -d "" -a @me -l feature -l by:lubin
 ```
-

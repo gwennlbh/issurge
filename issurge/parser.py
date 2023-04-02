@@ -1,9 +1,11 @@
+import os
 import subprocess
-from typing import Any, Iterable
+from typing import Any, Iterable, NamedTuple
 from urllib.parse import urlparse
-from rich import NamedTuple, print
 
-from issurge.utils import TAB, debug
+from rich import print
+
+from issurge.utils import NEWLINE, TAB, debug, debugging, dry_running
 
 
 class Node:
@@ -48,7 +50,6 @@ class Node:
 
 
 class Issue(NamedTuple):
-    _cli_options: dict[str, Any]
     title: str
     description: str
     labels: set[str]
@@ -78,11 +79,11 @@ class Issue(NamedTuple):
             subprocess.run(["git", "remote", "get-url", "origin"]).stdout.decode()
         )
         if remote_url.hostname == "github.com":
-            self._github_submit()
+            self._github_submit(submitter_args)
         else:
-            self._gitlab_submit()
+            self._gitlab_submit(submitter_args)
 
-    def _gitlab_submit(self):
+    def _gitlab_submit(self, submitter_args: list[str]):
         command = ["glab", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -93,15 +94,10 @@ class Issue(NamedTuple):
             command += ["-l", l]
         if self.milestone:
             command += ["-m", self.milestone]
-        command.extend(self._cli_options["<glab-args>"])
-        if self._cli_options["--dry-run"] or self._cli_options["--debug"]:
-            print(
-                f"{'Would run' if self._cli_options['--dry-run'] else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
-            )
-        if not self._cli_options["--dry-run"]:
-            subprocess.run(command)
+        command.extend(submitter_args)
+        self._run(command)
 
-    def _github_submit(self):
+    def _github_submit(self, submitter_args: list[str]):
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -112,13 +108,21 @@ class Issue(NamedTuple):
             command += ["-l", l]
         if self.milestone:
             command += ["-m", self.milestone]
-        command.extend(self._cli_options["<glab-args>"])
-        if self._cli_options["--dry-run"] or self._cli_options["--debug"]:
+        command.extend(submitter_args)
+        self._run(command)
+
+    def _run(self, command):
+        if dry_running() or debugging():
             print(
-                f"{'Would run' if self._cli_options['--dry-run'] else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
+                f"{'Would run' if dry_running() else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
             )
-        if not self._cli_options["--dry-run"]:
-            subprocess.run(command)
+        if not dry_running():
+            try:
+                subprocess.run(command, check=True, capture_output=True)
+            except subprocess.CalledProcessError as e:
+                print(
+                    f"Calling [white bold]{e.cmd}[/] failed with code [white bold]{e.returncode}[/]:\n{NEWLINE.join(TAB + line for line in e.stderr.decode().splitlines())}"
+                )
 
     # The boolean is true if the issue expects a description (ending ':')
     @classmethod
@@ -205,7 +209,6 @@ def parse_issue_fragment(
         labels=current_labels,
         assignees=current_assignees,
         milestone=current_milestone,
-        _cli_options=cli_options,
     )
 
     if current_issue.title:

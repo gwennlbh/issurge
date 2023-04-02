@@ -18,11 +18,11 @@ pip install issurge
 The command needs to be run inside of the git repository (this is used to detect if the repository uses github or gitlab)
 
 ```
-issurge  [options] <file> [--] [<glab-args>...]
+issurge  [options] <file> [--] [<submitter-args>...]
 issurge --help
 ```
 
-- **&lt;glab-args&gt;** contains arguments that will be passed as-is to every `glab` command.
+- **&lt;submitter-args&gt;** contains arguments that will be passed as-is to every `glab` (or `gh`) command.
 
 ### Options
 
