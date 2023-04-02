@@ -10,12 +10,8 @@ Options:
     --dry-run   Don't actually post the issues
     --debug     Print debug information
 """
-import json
 import os
-from collections.abc import Iterable
 from pathlib import Path
-from subprocess import run
-from typing import Generator, TypeAlias, TypeVar
 
 from docopt import docopt
 from rich import print

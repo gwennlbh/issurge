@@ -13,3 +13,4 @@ def debug(*args, **kwargs):
 
 
 TAB = "\t"
+NEWLINE = "\n"

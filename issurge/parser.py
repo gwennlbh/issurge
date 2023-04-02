@@ -50,13 +50,32 @@ class Node:
 
 
 class Issue(NamedTuple):
-    title: str
-    description: str
-    labels: set[str]
-    assignees: set[str]
-    milestone: str
+    title: str = ""
+    description: str = ""
+    labels: set[str] = set()
+    assignees: set[str] = set()
+    milestone: str = ""
+
+    def __rich_repr__(self):
+        yield self.title
+        yield "description", self.description, ""
+        yield "labels", self.labels, set()
+        yield "assignees", self.assignees, set()
+        yield "milestone", self.milestone, ""
 
     def __str__(self) -> str:
+        result = f"{self.title}" or "<No title>"
+        if self.labels:
+            result += f" {' '.join(['~' + l for l in self.labels])}"
+        if self.milestone:
+            result += f" %{self.milestone}"
+        if self.assignees:
+            result += f" {' '.join(['@' + a for a in self.assignees])}"
+        if self.description:
+            result += f": {self.description}"
+        return result
+
+    def display(self) -> str:
         result = f"[white]{self.title[:30]}[/white]" or "[red]<No title>[/red]"
         if len(self.title) > 30:
             result += " [white dim](...)[/white dim]"
@@ -74,14 +93,24 @@ class Issue(NamedTuple):
             result += " [white][...][/white]"
         return result
 
-    def submit(self):
-        remote_url = urlparse(
-            subprocess.run(["git", "remote", "get-url", "origin"]).stdout.decode()
-        )
+    def submit(self, submitter_args: list[str]):
+        remote_url = self._get_remote_url()
         if remote_url.hostname == "github.com":
             self._github_submit(submitter_args)
         else:
             self._gitlab_submit(submitter_args)
+
+    def _get_remote_url(self):
+        try:
+            return urlparse(
+                subprocess.run(
+                    ["git", "remote", "get-url", "origin"], capture_output=True
+                ).stdout.decode()
+            )
+        except subprocess.CalledProcessError as e:
+            raise ValueError(
+                "Could not determine remote url, make sure that you are inside of a git repository that has a remote named 'origin'"
+            ) from e
 
     def _gitlab_submit(self, submitter_args: list[str]):
         command = ["glab", "issue", "new"]
@@ -101,7 +130,7 @@ class Issue(NamedTuple):
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
-        command += ["-d", self.description or ""]
+        command += ["-b", self.description or ""]
         for a in self.assignees:
             command += ["-a", a if a != "me" else "@me"]
         for l in self.labels:
@@ -124,6 +153,15 @@ class Issue(NamedTuple):
                     f"Calling [white bold]{e.cmd}[/] failed with code [white bold]{e.returncode}[/]:\n{NEWLINE.join(TAB + line for line in e.stderr.decode().splitlines())}"
                 )
 
+    @staticmethod
+    def _word_and_sigil(raw_word: str) -> tuple[str, str]:
+        sigil = raw_word[0]
+        word = raw_word[1:]
+        if sigil not in ("~", "%", "@"):
+            sigil = ""
+            word = raw_word
+        return sigil, word
+
     # The boolean is true if the issue expects a description (ending ':')
     @classmethod
     def parse(cls, raw: str) -> tuple["Issue", bool]:
@@ -138,15 +176,30 @@ class Issue(NamedTuple):
         labels = set()
         assignees = set()
         milestone = ""
-        for word in raw.split(" "):
-            if word.startswith("~"):
-                labels.add(word[1:])
-            elif word.startswith("%"):
-                milestone = word[1:]
-            elif word.startswith("@"):
-                assignees.add(word[1:])
-            else:
+        # only labels/milestones/assignees at the beginning or end of the line are not added to the title as words
+        add_to_title = False
+        remaining_words = [word.strip() for word in raw.split(" ") if word.strip()]
+
+        while remaining_words:
+            sigil, word = cls._word_and_sigil(remaining_words.pop(0))
+
+            if sigil and add_to_title:
                 title += f" {word}"
+
+            match sigil:
+                case "~":
+                    labels.add(word)
+                case "%":
+                    milestone = word
+                case "@":
+                    assignees.add(word)
+                case _:
+                    title += f" {word}"
+                    # add to title if there are remaining regular words
+                    add_to_title = any(
+                        not sigil
+                        for (sigil, _) in map(cls._word_and_sigil, remaining_words)
+                    )
 
         return (
             cls(
@@ -212,12 +265,12 @@ def parse_issue_fragment(
     )
 
     if current_issue.title:
-        log(f"Made {current_issue!s}")
+        log(f"Made {current_issue.display()}")
         return [current_issue]
 
     if not expecting_description and children is not None:
         result = []
-        log(f"Making children from {current_issue!s}")
+        log(f"Making children from {current_issue.display()}")
         for child, grandchildren in children.items():
             result.extend(
                 parse_issue_fragment(
@@ -236,4 +289,5 @@ def parse_issue_fragment(
 
 def parse(raw: str) -> Iterable[Issue]:
     for item in Node.to_dict(raw).items():
-        yield parse_issue_fragment(*item, Issue("", "", set(), set(), ""))
+        for issue in parse_issue_fragment(*item, Issue("", "", set(), set(), "")):
+            yield issue

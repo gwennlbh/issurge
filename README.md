@@ -33,7 +33,7 @@ issurge --help
 
 Indentation is done with tab characters only.
 
-- **Title:** The title is made up of any word in the line that does not start with `~`, `@` or `%`.
+- **Title:** The title is made up of any word in the line that does not start with `~`, `@` or `%`. Words that start with any of these symbols will not be added to the title, except if they are in the middle (in that case, they both get added as tags/assignees/milestones and as a word in the title, without the prefix symbol)
 - **Tags:** Prefix a word with `~` to add a label to the issue
 - **Assignees:** Prefix with `@` to add an assignee. The special assignee `@me` is supported.
 - **Milestone:** Prefix with `%` to set the milestone
