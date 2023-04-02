@@ -2,6 +2,7 @@
   "name": "issurge",
   "displayName": "issurge",
   "description": "Syntax highlighting for the issurge language",
+  "publisher": "ewen-lbh",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.77.0"
