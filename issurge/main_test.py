@@ -33,6 +33,8 @@ def default_opts():
     yield {
         "<submitter-args>": [],
         "<file>": "test_empty_issues",
+        "<words>": [],
+        "new": False,
         "--dry-run": False,
         "--debug": False,
     }
