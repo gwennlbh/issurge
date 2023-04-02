@@ -75,7 +75,7 @@ You can also create a single issue directly from the command line with `issurge 
 If you end the line with `:`, issurge will prompt you for more lines.
 
 ```sh-session
-$ issurge new ~tag1 a tag right there @me :
+$ issurge --debug new ~enhancement add an interactive \"one-shot\" mode @me:
 Please enter a description for the issue (submit 2 empty lines to finish):
 > Basically allow users to enter an issue fragment directly on the command line with a subcommand, and if it expects a description, prompt for it
 > 
