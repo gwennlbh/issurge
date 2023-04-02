@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "issurge"
-version = "0.3.0"
+version = "0.4.0"
 description = "Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file."
 repository = "https://github.com/ewen-lbh/issurge"
 authors = ["Ewen Le Bihan <hey@ewen.works>"]
