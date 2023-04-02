@@ -20,8 +20,8 @@ from issurge.parser import parse
 from issurge.utils import debug
 
 
-def run():
-    opts = docopt(__doc__)
+def run(opts=None):
+    opts = opts or docopt(__doc__)
     os.environ["ISSURGE_DEBUG"] = "1" if opts["--debug"] else ""
     os.environ["ISSURGE_DRY_RUN"] = "1" if opts["--dry-run"] else ""
 

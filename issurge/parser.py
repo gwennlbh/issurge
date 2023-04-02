@@ -42,6 +42,8 @@ class Node:
 
     @staticmethod
     def to_dict(to_parse: str) -> dict[str, Any]:
+        if not to_parse.strip():
+            return {}
         root = Node("root")
         root.add_children(
             [Node(line) for line in to_parse.splitlines() if line.strip()]
@@ -213,6 +215,15 @@ class Issue(NamedTuple):
         )
 
 
+def tree_to_text(tree: dict[str, Any], recursion_depth=0) -> str:
+    result = ""
+    for line, children in tree.items():
+        result += TAB * recursion_depth + line.strip() + NEWLINE
+        if children is not None:
+            result += tree_to_text(children, recursion_depth + 1)
+    return result
+
+
 def parse_issue_fragment(
     issue_fragment: str,
     children: dict[str, Any],
@@ -248,13 +259,7 @@ def parse_issue_fragment(
     if expecting_description:
         if children is None:
             raise ValueError(f"Expected a description after {issue_fragment!r}")
-        current_description = ""
-        for line, v in children.items():
-            if v is not None:
-                raise ValueError(
-                    "Description should not have indented lines at {line!r}"
-                )
-            current_description += f"{line.strip()}\n"
+        current_description = tree_to_text(children, 0)
 
     current_issue = Issue(
         title=current_title,
@@ -289,5 +294,6 @@ def parse_issue_fragment(
 
 def parse(raw: str) -> Iterable[Issue]:
     for item in Node.to_dict(raw).items():
+        debug(f"Processing {item!r}")
         for issue in parse_issue_fragment(*item, Issue("", "", set(), set(), "")):
             yield issue
