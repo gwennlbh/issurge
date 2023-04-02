@@ -1,7 +1,7 @@
 # Exemple 
 
 ```sh-sesion
-$ issurge ./issues --debug --dry-run
+$ issurge ./exemple.issurge --debug --dry-run
 
 Running with options: {'--': False,
  '--debug': True,

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Issurge issues list",
+  "patterns": [
+    {
+      "begin": "^(\\t*)(.*)(:)\\s*$",
+      "end": "^(\\1)(.*)$",
+      "captures": {
+        "2": {
+          "patterns": [
+            {
+              "include": "#attributes"
+            }
+          ]
+        },
+        "3": {
+          "name": "punctuation.separator.key-value"
+        }
+      },
+      "contentName": "string.unquoted"
+    },
+    {
+      "include": "#attributes"
+    }
+  ],
+  "repository": {
+    "attributes": {
+      "match": "(?:^|\\b|\\s)(~\\S+)|(%\\S+)|(@\\S+)(?:$|\\b|\\s)",
+      "captures": {
+        "1": {
+          "name": "storage.type"
+        },
+        "2": {
+          "name": "constant.numeric"
+        },
+        "3": {
+          "name": "constant.character"
+        }
+      }
+    }
+  },
+  "scopeName": "source.issurge"
+}
