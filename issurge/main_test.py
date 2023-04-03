@@ -100,6 +100,7 @@ def _(_=setup, opts=default_opts):
         ],
     ]
 
+
 @test("issues are submitted when --dry-run is not passed, with gitlab provider")
 def _(_=setup, opts=default_opts):
     Issue._get_remote_url = Mock(
@@ -135,7 +136,74 @@ def _(_=setup, opts=default_opts):
         ],
     ]
 
+
 @test("issues are not submitted when --dry-run is passed")
 def _(_=setup, opts=default_opts):
     run(opts=opts | {"<file>": "test_some_issues", "--dry-run": True})
     assert len(subprocess.run.mock_calls) == 0
+
+
+@test("issues are not submitted when --dry-run is passed, in interactive mode")
+def _(_=setup, opts=default_opts):
+    run(
+        opts=opts
+        | {
+            "new": True,
+            "--dry-run": True,
+            "<words>": ["testing", "~this", "issue", "@me"],
+        }
+    )
+    assert len(subprocess.run.mock_calls) == 0
+
+@test("issues are submitted when --dry-run is not passed, in interactive mode, github provider")
+def _(_=setup, opts=default_opts):
+    run(
+        opts=opts
+        | {
+            "new": True,
+            "<words>": ["testing", "~this", "issue", "@me"],
+        }
+    )
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "testing this issue",
+            "-b",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "this",
+        ],
+    ]
+
+@test("issues are submitted when --dry-run is not passed, in interactive mode, gitlab provider")
+def _(_=setup, opts=default_opts):
+    Issue._get_remote_url = Mock(
+        return_value=urlparse("https://gitlab.com/ewen-lbh/gh-api-playground")
+    )
+    run(
+        opts=opts
+        | {
+            "new": True,
+            "<words>": ["testing", "~this", "issue", "@me"],
+        }
+    )
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "glab",
+            "issue",
+            "new",
+            "-t",
+            "testing this issue",
+            "-d",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "this",
+        ],
+    ]
