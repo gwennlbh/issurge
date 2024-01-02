@@ -1,4 +1,4 @@
-from .parser import Issue, parse
+from .parser import Issue
 
 
 def create_issue(words: str) -> Issue:

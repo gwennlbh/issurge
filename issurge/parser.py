@@ -233,7 +233,7 @@ def parse_issue_fragment(
 ) -> list[Issue]:
     if not cli_options:
         cli_options = {}
-    log = lambda *args, **kwargs: debug(
+    log = lambda *args, **kwargs: print(
         f"[white]{issue_fragment[:50]: <50}[/white]\t{TAB*recursion_depth}",
         *args,
         **kwargs,
@@ -242,6 +242,7 @@ def parse_issue_fragment(
     if issue_fragment.strip().startswith("//"):
         log(f"[yellow bold]Skipping comment[/]")
         return []
+    log(f"Inheriting from {current_issue.display()}")
     current_title = current_issue.title
     current_description = current_issue.description
     current_labels = set(current_issue.labels)
@@ -255,7 +256,8 @@ def parse_issue_fragment(
     current_title = parsed.title
     current_labels |= parsed.labels
     current_assignees |= parsed.assignees
-    current_milestone = parsed.milestone
+    if parsed.milestone:
+        current_milestone = parsed.milestone
     if expecting_description:
         if children is None:
             raise ValueError(f"Expected a description after {issue_fragment!r}")

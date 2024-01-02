@@ -155,7 +155,10 @@ def _(_=setup, opts=default_opts):
     )
     assert len(subprocess.run.mock_calls) == 0
 
-@test("issues are submitted when --dry-run is not passed, in interactive mode, github provider")
+
+@test(
+    "issues are submitted when --dry-run is not passed, in interactive mode, github provider"
+)
 def _(_=setup, opts=default_opts):
     run(
         opts=opts
@@ -180,7 +183,10 @@ def _(_=setup, opts=default_opts):
         ],
     ]
 
-@test("issues are submitted when --dry-run is not passed, in interactive mode, gitlab provider")
+
+@test(
+    "issues are submitted when --dry-run is not passed, in interactive mode, gitlab provider"
+)
 def _(_=setup, opts=default_opts):
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://gitlab.com/ewen-lbh/gh-api-playground")

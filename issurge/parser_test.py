@@ -117,6 +117,26 @@ And
             )
         ],
     ),
+    (
+        """%milestone_test @me
+\t~notsure do this
+\t~important do that
+""",
+        [
+            Issue(
+                title="do this",
+                labels={"notsure"},
+                assignees={"me"},
+                milestone="milestone_test",
+            ),
+            Issue(
+                title="do that",
+                labels={"important"},
+                assignees={"me"},
+                milestone="milestone_test",
+            ),
+        ],
+    ),
 ]:
 
     @test(f"parse issues from {textwrap.dedent(lines)!r}")
