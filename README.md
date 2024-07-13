@@ -4,6 +4,8 @@
 
 Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file.
 
+![demo](./demo.gif)
+
 ## Supported platforms
 
 - Gitlab (including custom instances): requires [`glab`](https://gitlab.com/gitlab-org/cli#installation) to be installed
