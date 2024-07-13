@@ -104,11 +104,13 @@ class Issue(NamedTuple):
 
     def _get_remote_url(self):
         try:
-            return urlparse(
-                subprocess.run(
-                    ["git", "remote", "get-url", "origin"], capture_output=True
-                ).stdout.decode()
-            )
+            origin =  subprocess.run(
+                ["git", "remote", "get-url", "origin"], capture_output=True
+            ).stdout.decode()
+            # fake an HTTPs URL from a SSH one
+            if origin.startswith("git@"):
+                origin = origin.replace(":", "/").replace("git@", "https://")
+            return urlparse(origin)
         except subprocess.CalledProcessError as e:
             raise ValueError(
                 "Could not determine remote url, make sure that you are inside of a git repository that has a remote named 'origin'"
