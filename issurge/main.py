@@ -21,7 +21,7 @@ from docopt import docopt
 from rich import print
 
 from issurge.parser import parse
-from issurge.utils import debug
+from issurge.utils import debug, dry_running
 from issurge import interactive
 
 
@@ -40,7 +40,7 @@ def run(opts=None):
         print("Submitting issues...")
         references_resolutions: dict[int, int] = {}
         for issue in parse(Path(opts["<file>"]).read_text()):
-            issue = issue.resolve_references(references_resolutions, strict=True)
+            issue = issue.resolve_references(references_resolutions, strict=not dry_running())
             number = issue.submit(opts["<submitter-args>"])
             print(f"Created issue #{number}")
             if issue.reference and number:
