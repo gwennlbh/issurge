@@ -37,10 +37,11 @@ issurge --help
 
 Indentation is done with tab characters only.
 
-- **Title:** The title is made up of any word in the line that does not start with `~`, `@` or `%`. Words that start with any of these symbols will not be added to the title, except if they are in the middle (in that case, they both get added as tags/assignees/milestones and as a word in the title, without the prefix symbol)
+- **Title:** The title is made up of any word in the line that does not start with `~`, `@`, `%` or `#.`. Words that start with any of these symbols will not be added to the title, except if they are in the middle (in that case, they both get added as tags/assignees/milestones and as a word in the title, without the prefix symbol)
 - **Tags:** Prefix a word with `~` to add a label to the issue
 - **Assignees:** Prefix with `@` to add an assignee. The special assignee `@me` is supported.
 - **Milestone:** Prefix with `%` to set the milestone
+- **References:** Prefix with `#.NUMBER` to define a reference for this issue. See [Cross-reference other issues](#cross-reference-other-issues) for more information.
 - **Comments:** You can add comments by prefixing a line with `//`
 - **Description:** To add a description, finish the line with `:`, and put the description on another line (or multiple), just below, indented once more than the issue's line. Exemple:
 
@@ -69,6 +70,33 @@ One issue
 
 Another issue.
 ```
+
+#### Cross-reference other issues
+
+As you might know, you can link an issue to another by using `#NUMBER`, with `NUMBER` the number of the issue you want to reference. You could want to write that, to reference `First issue` in `Second issue`:
+
+```
+First issue
+
+Second issue:
+  Needs #11  
+```
+
+However, this assumes that the current latest issue, before running issurge on this file, is `#9`. It also assumes that issues get created in order (which is the case for now), and that no other issue will get created while running issurge.
+
+As managing all of this by hand can be annoying, you can create references in the issurge file:
+
+```
+#.1 First issue
+
+Second issue:
+  Needs #.1
+```
+
+And that `#.1` in `Needs #.1` will be replaced by the actual issue number of `First issue` when the issue gets created.
+
+> [!WARNING]
+> For now, issues are created in order, so you need to define a reference _before_ you can use it.
 
 ### One-shot mode
 

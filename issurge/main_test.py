@@ -8,6 +8,10 @@ from issurge.parser import Issue, subprocess
 
 from issurge.utils import debugging, dry_running
 
+class MockedSubprocessOutput:
+    def __init__(self, stdout: str, stderr: str):
+        self.stdout = stdout.encode('utf-8')
+        self.stderr = stderr.encode('utf-8')
 
 @fixture
 def setup():
@@ -17,7 +21,9 @@ def setup():
 \tAn issue to submit
 Another ~issue to submit @me"""
     )
-    subprocess.run = Mock()
+    subprocess.run = Mock(
+        return_value=MockedSubprocessOutput("https://github.com/gwennlbh/gh-api-playground/issues/5\n", "Some unrelated stuff haha")
+    )
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://github.com/ewen-lbh/gh-api-playground")
     )
@@ -84,6 +90,8 @@ def _(_=setup, opts=default_opts):
             "common",
             "-l",
             "common",
+            "-m",
+            "common",
         ],
         [
             "gh",
@@ -119,6 +127,8 @@ def _(_=setup, opts=default_opts):
             "-a",
             "common",
             "-l",
+            "common",
+            "-m",
             "common",
         ],
         [

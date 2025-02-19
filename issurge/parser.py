@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from typing import Any, Iterable, NamedTuple
 from urllib.parse import urlparse
@@ -57,6 +58,7 @@ class Issue(NamedTuple):
     labels: set[str] = set()
     assignees: set[str] = set()
     milestone: str = ""
+    reference: int|None = None
 
     def __rich_repr__(self):
         yield self.title
@@ -64,9 +66,14 @@ class Issue(NamedTuple):
         yield "labels", self.labels, set()
         yield "assignees", self.assignees, set()
         yield "milestone", self.milestone, ""
+        yield "ref", self.reference, None
+        yield "references", self.references, set()
 
     def __str__(self) -> str:
-        result = f"{self.title}" or "<No title>"
+        result = ""
+        if self.reference:
+            result += f"<#{self.reference}> "
+        result += f"{self.title}" or "<No title>"
         if self.labels:
             result += f" {' '.join(['~' + l for l in self.labels])}"
         if self.milestone:
@@ -78,7 +85,10 @@ class Issue(NamedTuple):
         return result
 
     def display(self) -> str:
-        result = f"[white]{self.title[:30]}[/white]" or "[red]<No title>[/red]"
+        result = ""
+        if self.reference:
+            result += f"[bold blue]<#{self.reference}>[/bold blue] "
+        result += f"[white]{self.title[:30]}[/white]" or "[red]<No title>[/red]"
         if len(self.title) > 30:
             result += " [white dim](...)[/white dim]"
         if self.labels:
@@ -95,12 +105,33 @@ class Issue(NamedTuple):
             result += " [white][...][/white]"
         return result
 
+    @property
+    def references(self) -> set[int]:
+        # find all \b#\.(\d+)\b in description
+        references = set()
+        for word in self.description.strip().split(" "):
+            if word.startswith("#.") and word[2:].strip().isdigit():
+                references.add(int(word[2:].strip()))
+
+        return references
+
+    def resolve_references(self, resolution_map: dict[int, int], strict=False) -> 'Issue':
+        resolved_description = self.description
+        for reference in self.references:
+            if (resolved := resolution_map.get(reference)):
+                resolved_description = resolved_description.replace(f"#.{reference}", f"#{resolved}")
+            elif strict:
+                raise Exception(f"Could not resolve reference #.{reference}")
+
+        return Issue(**(self._asdict() | {"description": resolved_description}))
+            
+
     def submit(self, submitter_args: list[str]):
         remote_url = self._get_remote_url()
         if remote_url.hostname == "github.com":
-            self._github_submit(submitter_args)
+            return self._github_submit(submitter_args)
         else:
-            self._gitlab_submit(submitter_args)
+            return self._gitlab_submit(submitter_args)
 
     def _get_remote_url(self):
         try:
@@ -116,7 +147,7 @@ class Issue(NamedTuple):
                 "Could not determine remote url, make sure that you are inside of a git repository that has a remote named 'origin'"
             ) from e
 
-    def _gitlab_submit(self, submitter_args: list[str]):
+    def _gitlab_submit(self, submitter_args: list[str]) -> int|None:
         command = ["glab", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -128,9 +159,14 @@ class Issue(NamedTuple):
         if self.milestone:
             command += ["-m", self.milestone]
         command.extend(submitter_args)
-        self._run(command)
+        out = self._run(command)
+        # parse issue number from command output url: https://.+/-/issues/(\d+)
+        if out and (url := re.search(r"https://.+/-/issues/(\d+)", out)):
+            return int(url.group(1))
+        
+        # raise Exception(f"Could not parse issue number from {out!r}")
 
-    def _github_submit(self, submitter_args: list[str]):
+    def _github_submit(self, submitter_args: list[str]) -> int|None:
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -142,7 +178,14 @@ class Issue(NamedTuple):
         if self.milestone:
             command += ["-m", self.milestone]
         command.extend(submitter_args)
-        self._run(command)
+        out = self._run(command)
+        # parse issue number from command output url: https://github.com/.+/issues/(\d+)
+        pattern = re.compile(r"https:\/\/github\.com\/.+\/issues\/(\d+)")
+        if out and (url := pattern.search(out)):
+            return int(url.group(1))
+
+        # raise Exception(f"Could not parse issue number from {out!r}, looked for regex {pattern}")
+        return None
 
     def _run(self, command):
         if dry_running() or debugging():
@@ -151,7 +194,8 @@ class Issue(NamedTuple):
             )
         if not dry_running():
             try:
-                subprocess.run(command, check=True, capture_output=True)
+                out = subprocess.run(command, check=True, capture_output=True)
+                return out.stderr.decode() + "\n" + out.stdout.decode()
             except subprocess.CalledProcessError as e:
                 print(
                     f"Calling [white bold]{e.cmd}[/] failed with code [white bold]{e.returncode}[/]:\n{NEWLINE.join(TAB + line for line in e.stderr.decode().splitlines())}"
@@ -159,6 +203,9 @@ class Issue(NamedTuple):
 
     @staticmethod
     def _word_and_sigil(raw_word: str) -> tuple[str, str]:
+        if raw_word.startswith("#.") and raw_word[2:].isdigit():
+            return "#.", raw_word[2:]
+
         sigil = raw_word[0]
         word = raw_word[1:]
         if sigil not in ("~", "%", "@"):
@@ -180,12 +227,16 @@ class Issue(NamedTuple):
         labels = set()
         assignees = set()
         milestone = ""
+        reference = None
         # only labels/milestones/assignees at the beginning or end of the line are not added to the title as words
         add_to_title = False
         remaining_words = [word.strip() for word in raw.split(" ") if word.strip()]
+        _debug_sigils = []
 
         while remaining_words:
             sigil, word = cls._word_and_sigil(remaining_words.pop(0))
+
+            _debug_sigils.append(sigil)
 
             if sigil and add_to_title:
                 title += f" {word}"
@@ -197,6 +248,8 @@ class Issue(NamedTuple):
                     milestone = word
                 case "@":
                     assignees.add(word)
+                case "#.":
+                    reference = int(word)
                 case _:
                     title += f" {word}"
                     # add to title if there are remaining regular words
@@ -212,6 +265,7 @@ class Issue(NamedTuple):
                 labels=labels,
                 assignees=assignees,
                 milestone=milestone,
+                reference=reference 
             ),
             expects_description,
         )
@@ -271,6 +325,7 @@ def parse_issue_fragment(
         labels=current_labels,
         assignees=current_assignees,
         milestone=current_milestone,
+        reference=parsed.reference
     )
 
     if current_issue.title:

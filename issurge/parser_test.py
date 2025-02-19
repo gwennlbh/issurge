@@ -29,6 +29,11 @@ for fragment, expected, description_expected in [
         Issue(title="A label with a description following it", labels={"now"}),
         True,
     ),
+    (
+        "#.1 An issue with a reference definition",
+        Issue(title="An issue with a reference definition", reference=1),
+        False,
+    ),
 ]:
 
     @test(f"parse {fragment!r}")
@@ -137,12 +142,42 @@ And
             ),
         ],
     ),
+    (
+        """
+An issue that references another ~blocked:
+\tSee #.1
+
+#.1 The other one ^w^
+""",
+        [
+            Issue(
+                title="An issue that references another",
+                labels={"blocked"},
+                description="See #.1\n",
+            ),
+            Issue(
+                title="The other one ^w^",
+                reference=1,
+            ),
+        ],
+    ),
 ]:
 
     @test(f"parse issues from {textwrap.dedent(lines)!r}")
     def _(lines=lines, expected=expected):
         assert list(parse(lines)) == expected
 
+
+@test("resolves references")
+def _():
+    [issue, *_] = list(parse("An issue that references another ~blocked:\n\tSee #.2"))
+    assert issue.references == {2}
+    issue = issue.resolve_references({2: 1})
+    assert issue.description == "See #1\n"
+
+@test("splits #. sigil")
+def _():
+    assert Issue._word_and_sigil("#.1") == ("#.", "1")
 
 @test("parse issue with missing description fails")
 def _():

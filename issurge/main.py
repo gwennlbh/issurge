@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Usage:
-    issurge [options] new <words>... 
+    issurge [options] new <words>...
     issurge [options] <file> [--] [<submitter-args>...]
     issurge --help
 
@@ -13,6 +13,7 @@ Options:
     --dry-run   Don't actually post the issues
     --debug     Print debug information
 """
+
 import os
 from pathlib import Path
 
@@ -33,8 +34,14 @@ def run(opts=None):
     if opts["new"]:
         issue = interactive.create_issue(" ".join(opts["<words>"]))
         debug(f"Submitting {issue.display()}")
-        issue.submit(opts["<submitter-args>"])
+        number = issue.submit(opts["<submitter-args>"])
+        print(f"Created issue #{number}")
     else:
         print("Submitting issues...")
+        references_resolutions: dict[int, int] = {}
         for issue in parse(Path(opts["<file>"]).read_text()):
-            issue.submit(opts["<submitter-args>"])
+            issue = issue.resolve_references(references_resolutions, strict=True)
+            number = issue.submit(opts["<submitter-args>"])
+            print(f"Created issue #{number}")
+            if issue.reference and number:
+                references_resolutions[issue.reference] = number
