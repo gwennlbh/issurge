@@ -14,7 +14,7 @@ Repository = "https://github.com/gwennlbh/issurge"
 issurge = "issurge.main:run"
 
 [dependency-groups]
-dev = ["pytest>=8.3.5", "pytest-cov>=6.1.1", "setuptools>=75.8.0,<76"]
+dev = ["pytest>=8.3.5", "pytest-cov>=6.1.1", "setuptools>=75.9.1,<76"]
 
 [tool.uv]
 
