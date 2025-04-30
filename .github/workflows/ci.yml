@@ -28,7 +28,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: uv publish
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
