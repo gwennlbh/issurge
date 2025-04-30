@@ -49,6 +49,7 @@ def default_opts():
         "new": False,
         "--dry-run": False,
         "--debug": False,
+        "--open": False,
     }
 
 

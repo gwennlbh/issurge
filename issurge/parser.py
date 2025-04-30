@@ -126,7 +126,7 @@ class Issue(NamedTuple):
         return Issue(**(self._asdict() | {"description": resolved_description}))
             
 
-    def submit(self, submitter_args: list[str]):
+    def submit(self, submitter_args: list[str]) -> tuple[str|None, int|None]:
         remote_url = self._get_remote_url()
         if remote_url.hostname == "github.com":
             return self._github_submit(submitter_args)
@@ -147,7 +147,7 @@ class Issue(NamedTuple):
                 "Could not determine remote url, make sure that you are inside of a git repository that has a remote named 'origin'"
             ) from e
 
-    def _gitlab_submit(self, submitter_args: list[str]) -> int|None:
+    def _gitlab_submit(self, submitter_args: list[str]) -> tuple[str|None, int|None]:
         command = ["glab", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -162,11 +162,12 @@ class Issue(NamedTuple):
         out = self._run(command)
         # parse issue number from command output url: https://.+/-/issues/(\d+)
         if out and (url := re.search(r"https://.+/-/issues/(\d+)", out)):
-            return int(url.group(1))
+            return url, int(url.group(1))
         
         # raise Exception(f"Could not parse issue number from {out!r}")
+        return None, None
 
-    def _github_submit(self, submitter_args: list[str]) -> int|None:
+    def _github_submit(self, submitter_args: list[str]) -> tuple[str|None, int|None]:
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -182,10 +183,10 @@ class Issue(NamedTuple):
         # parse issue number from command output url: https://github.com/.+/issues/(\d+)
         pattern = re.compile(r"https:\/\/github\.com\/.+\/issues\/(\d+)")
         if out and (url := pattern.search(out)):
-            return int(url.group(1))
+            return url, int(url.group(1))
 
         # raise Exception(f"Could not parse issue number from {out!r}, looked for regex {pattern}")
-        return None
+        return None, None
 
     def _run(self, command):
         if dry_running() or debugging():
