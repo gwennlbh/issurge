@@ -1,32 +1,26 @@
-[tool.poetry]
+[project]
 name = "issurge"
 version = "0.6.1"
 description = "Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file."
-repository = "https://github.com/gwennlbh/issurge"
-authors = ["Gwenn Le Bihan <gwenn.lebihan7@gmail.com>"]
+authors = [{ name = "Gwenn Le Bihan", email = "gwenn.lebihan7@gmail.com" }]
+requires-python = ">=3.10"
 readme = "README.md"
-scripts = { issurge = "issurge.main:run" }
+dependencies = ["rich>=13.3.3,<14", "docopt>=0.6.2,<0.7"]
 
-[tool.poetry.dependencies]
-python = "^3.10,<3.12"
-rich = "^13.3.3"
-docopt = "^0.6.2"
+[project.urls]
+Repository = "https://github.com/gwennlbh/issurge"
 
+[project.scripts]
+issurge = "issurge.main:run"
 
-[tool.poetry.group.dev.dependencies]
-ward = "^0.67.2b0"
-ward-coverage = {git = "https://github.com/petereon/ward-coverage.git"}
-setuptools = "^75.8.0"
+[dependency-groups]
+dev = ["pytest>=8.3.5", "pytest-cov>=6.1.1", "setuptools>=75.8.0,<76"]
+
+[tool.uv]
+
+[tool.pytest.ini_options]
+addopts = "--cov=issurge --cov-report xml"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.ward]
-hook_module = ["ward_coverage"]
-
-[tool.ward.plugins.coverage]
-omit = ["*_test.py"]
-report_type = ["term", "xml"]
-report = { skip_empty = true }
-source = ["issurge"]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

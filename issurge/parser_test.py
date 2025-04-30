@@ -1,105 +1,108 @@
-from ward import test, raises
-import os
-from .parser import Issue, parse
 import textwrap
 
-for fragment, expected, description_expected in [
-    ("", Issue(), False),
-    ("a simple test right there", Issue(title="a simple test right there"), False),
-    (
-        "@me some ~labels to ~organize issues ~bug",
-        Issue(
-            title="some labels to organize issues",
-            labels={"labels", "organize", "bug"},
-            assignees={"me"},
-        ),
-        False,
-    ),
-    (
-        "a %milestone to keep ~track of stuff",
-        Issue(
-            title="a milestone to keep track of stuff",
-            labels={"track"},
-            milestone="milestone",
-        ),
-        False,
-    ),
-    (
-        "A label with a description following it ~now:",
-        Issue(title="A label with a description following it", labels={"now"}),
-        True,
-    ),
-    (
-        "#.1 An issue with a reference definition",
-        Issue(title="An issue with a reference definition", reference=1),
-        False,
-    ),
-]:
+import pytest
 
-    @test(f"parse {fragment!r}")
-    def _(
-        fragment=fragment, expected=expected, description_expected=description_expected
-    ):
-        actual, expecting_description = Issue.parse(fragment)
-        assert expecting_description == description_expected
-        assert actual == expected
+from .parser import Issue, parse
 
 
-for lines, expected in [
-    ("", []),
-    ("A simple issue", [Issue(title="A simple issue")]),
-    ("~label @me", []),
-    (
-        """
-        @me some ~labels to ~organize issues ~bug
-        a %milestone to keep ~track of stuff
-        """,
-        [
+@pytest.mark.parametrize(
+    "fragment, expected, description_expected",
+    [
+        ("", Issue(), False),
+        ("a simple test right there", Issue(title="a simple test right there"), False),
+        (
+            "@me some ~labels to ~organize issues ~bug",
             Issue(
                 title="some labels to organize issues",
                 labels={"labels", "organize", "bug"},
                 assignees={"me"},
             ),
+            False,
+        ),
+        (
+            "a %milestone to keep ~track of stuff",
             Issue(
                 title="a milestone to keep track of stuff",
                 labels={"track"},
                 milestone="milestone",
             ),
-        ],
-    ),
-    (
-        """
-        some stuff
-        \tinside: not processed
-        """,
-        [
-            Issue(title="some stuff"),
-        ],
-    ),
-    (
-        """
-        ~common-tag @someone
-        \tright there ~other-tag
-        \t//A comment
+            False,
+        ),
+        (
+            "A label with a description following it ~now:",
+            Issue(title="A label with a description following it", labels={"now"}),
+            True,
+        ),
+        (
+            "#.1 An issue with a reference definition",
+            Issue(title="An issue with a reference definition", reference=1),
+            False,
+        ),
+    ],
+)
+def test_parse_fragment(fragment, expected, description_expected):
+    actual, expecting_description = Issue.parse(fragment)
+    assert expecting_description == description_expected
+    assert actual == expected
 
-        \t@someone-else right %here
-        """,
-        [
-            Issue(
-                title="right there",
-                labels={"common-tag", "other-tag"},
-                assignees={"someone"},
-            ),
-            Issue(
-                title="right",
-                labels={"common-tag"},
-                assignees={"someone-else", "someone"},
-                milestone="here",
-            ),
-        ],
-    ),
-    (
-        """An ~issue with a description:
+
+@pytest.mark.parametrize(
+    "lines, expected",
+    [
+        ("", []),
+        ("A simple issue", [Issue(title="A simple issue")]),
+        ("~label @me", []),
+        (
+            """
+            @me some ~labels to ~organize issues ~bug
+            a %milestone to keep ~track of stuff
+            """,
+            [
+                Issue(
+                    title="some labels to organize issues",
+                    labels={"labels", "organize", "bug"},
+                    assignees={"me"},
+                ),
+                Issue(
+                    title="a milestone to keep track of stuff",
+                    labels={"track"},
+                    milestone="milestone",
+                ),
+            ],
+        ),
+        (
+            """
+            some stuff
+            \tinside: not processed
+            """,
+            [
+                Issue(title="some stuff"),
+            ],
+        ),
+        (
+            """
+            ~common-tag @someone
+            \tright there ~other-tag
+            \t//A comment
+
+            \t@someone-else right %here
+            """,
+            [
+                Issue(
+                    title="right there",
+                    labels={"common-tag", "other-tag"},
+                    assignees={"someone"},
+                ),
+                Issue(
+                    title="right",
+                    labels={"common-tag"},
+                    assignees={"someone-else", "someone"},
+                    milestone="here",
+                ),
+            ],
+        ),
+        (
+            """An ~issue with a description:
 \tThis is the %description of the issue:
 \t// This is *not* a comment
 \tIt has a 
@@ -107,83 +110,79 @@ for lines, expected in [
 
 \tAnd
 \t\tIndentation
-        """,
-        [
-            Issue(
-                title="An issue with a description",
-                labels={"issue"},
-                description="""This is the %description of the issue:
+            """,
+            [
+                Issue(
+                    title="An issue with a description",
+                    labels={"issue"},
+                    description="""This is the %description of the issue:
 // This is *not* a comment
 It has a
 - bullet list
 And
 \tIndentation
 """,
-            )
-        ],
-    ),
-    (
-        """%milestone_test @me
+                )
+            ],
+        ),
+        (
+            """%milestone_test @me
 \t~notsure do this
 \t~important do that
 """,
-        [
-            Issue(
-                title="do this",
-                labels={"notsure"},
-                assignees={"me"},
-                milestone="milestone_test",
-            ),
-            Issue(
-                title="do that",
-                labels={"important"},
-                assignees={"me"},
-                milestone="milestone_test",
-            ),
-        ],
-    ),
-    (
-        """
+            [
+                Issue(
+                    title="do this",
+                    labels={"notsure"},
+                    assignees={"me"},
+                    milestone="milestone_test",
+                ),
+                Issue(
+                    title="do that",
+                    labels={"important"},
+                    assignees={"me"},
+                    milestone="milestone_test",
+                ),
+            ],
+        ),
+        (
+            """
 An issue that references another ~blocked:
 \tSee #.1
 
 #.1 The other one ^w^
 """,
-        [
-            Issue(
-                title="An issue that references another",
-                labels={"blocked"},
-                description="See #.1\n",
-            ),
-            Issue(
-                title="The other one ^w^",
-                reference=1,
-            ),
-        ],
-    ),
-]:
+            [
+                Issue(
+                    title="An issue that references another",
+                    labels={"blocked"},
+                    description="See #.1\n",
+                ),
+                Issue(
+                    title="The other one ^w^",
+                    reference=1,
+                ),
+            ],
+        ),
+    ],
+)
+def test_parse_issues(lines, expected):
+    assert list(parse(textwrap.dedent(lines))) == expected
 
-    @test(f"parse issues from {textwrap.dedent(lines)!r}")
-    def _(lines=lines, expected=expected):
-        assert list(parse(lines)) == expected
 
-
-@test("resolves references")
-def _():
+def test_resolves_references():
     [issue, *_] = list(parse("An issue that references another ~blocked:\n\tSee #.2"))
     assert issue.references == {2}
     issue = issue.resolve_references({2: 1})
     assert issue.description == "See #1\n"
 
-@test("splits #. sigil")
-def _():
+
+def test_splits_sigil():
     assert Issue._word_and_sigil("#.1") == ("#.", "1")
 
-@test("parse issue with missing description fails")
-def _():
-    with raises(ValueError) as exception:
+
+def test_parse_issue_with_missing_description_fails():
+    with pytest.raises(
+        ValueError, match="Expected a description after 'An ~issue with a description:'"
+    ):
         list(parse("An ~issue with a description:\nNo description here"))
-    assert (
-        str(exception.raised)
-        == f"Expected a description after 'An ~issue with a description:'"
-    )

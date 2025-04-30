@@ -1,39 +1,40 @@
 from unittest.mock import Mock
 
-from ward import test
+import pytest
 
 from issurge import interactive
 from issurge.parser import Issue
 
-for words, expected in [
-    ("", Issue()),
-    ("a simple test right there", Issue(title="a simple test right there")),
-    (
-        "@me some ~labels to ~organize issues ~bug",
-        Issue(
-            title="some labels to organize issues",
-            labels={"labels", "organize", "bug"},
-            assignees={"me"},
+
+@pytest.mark.parametrize(
+    "words, expected",
+    [
+        ("", Issue()),
+        ("a simple test right there", Issue(title="a simple test right there")),
+        (
+            "@me some ~labels to ~organize issues ~bug",
+            Issue(
+                title="some labels to organize issues",
+                labels={"labels", "organize", "bug"},
+                assignees={"me"},
+            ),
         ),
-    ),
-    (
-        "a %milestone to keep ~track of stuff",
-        Issue(
-            title="a milestone to keep track of stuff",
-            labels={"track"},
-            milestone="milestone",
+        (
+            "a %milestone to keep ~track of stuff",
+            Issue(
+                title="a milestone to keep track of stuff",
+                labels={"track"},
+                milestone="milestone",
+            ),
         ),
-    ),
-]:
-
-    @test("create issue from words {words!r}")
-    def _(words=words, expected=expected):
-        actual = interactive.create_issue(words)
-        assert actual == expected
+    ],
+)
+def test_create_issue_from_words(words, expected):
+    actual = interactive.create_issue(words)
+    assert actual == expected
 
 
-@test("create issue from words with description")
-def _():
+def test_create_issue_from_words_with_description():
     global called_count
     called_count = 0
 

@@ -1,38 +1,36 @@
-import os, io, sys
+import os
 from unittest.mock import Mock
-from ward import test
-from issurge.utils import debug, debugging, dry_running
+
+import pytest
+
 import issurge.utils
+from issurge.utils import debug, debugging, dry_running
 
 
-@test("debugging is false by default")
-def _():
+def test_debugging_is_false_by_default():
     assert not debugging()
 
 
-@test("debugging is true when ISSURGE_DEBUG is set")
-def _():
+def test_debugging_is_true_when_issurge_debug_is_set():
     os.environ["ISSURGE_DEBUG"] = "1"
     assert debugging()
     del os.environ["ISSURGE_DEBUG"]
 
 
-@test("dry_running is false by default")
-def _():
+def test_dry_running_is_false_by_default():
     assert not dry_running()
 
 
-@test("dry_running is true when ISSURGE_DRY_RUN is set")
-def _():
+def test_dry_running_is_true_when_issurge_dry_run_is_set():
     os.environ["ISSURGE_DRY_RUN"] = "1"
     assert dry_running()
     del os.environ["ISSURGE_DRY_RUN"]
 
 
-@test("debug only prints when debugging is true")
-def _():
+def test_debug_only_prints_when_debugging_is_true():
     issurge.utils.print = Mock()
     os.environ["ISSURGE_DEBUG"] = "1"
     debug("debug")
     assert len(issurge.utils.print.mock_calls) == 1
     assert issurge.utils.print.mock_calls[0].args[0] == "debug"
+    del os.environ["ISSURGE_DEBUG"]

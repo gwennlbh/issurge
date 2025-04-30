@@ -1,19 +1,22 @@
 import os
-from urllib.parse import urlparse
-from ward import fixture, test
-from issurge.main import run
 from pathlib import Path
 from unittest.mock import Mock
-from issurge.parser import Issue, subprocess
+from urllib.parse import urlparse
 
+import pytest
+
+from issurge.main import run
+from issurge.parser import Issue, subprocess
 from issurge.utils import debugging, dry_running
+
 
 class MockedSubprocessOutput:
     def __init__(self, stdout: str, stderr: str):
-        self.stdout = stdout.encode('utf-8')
-        self.stderr = stderr.encode('utf-8')
+        self.stdout = stdout.encode("utf-8")
+        self.stderr = stderr.encode("utf-8")
 
-@fixture
+
+@pytest.fixture
 def setup():
     Path("test_empty_issues").write_text("")
     Path("test_some_issues").write_text(
@@ -22,7 +25,10 @@ def setup():
 Another ~issue to submit @me"""
     )
     subprocess.run = Mock(
-        return_value=MockedSubprocessOutput("https://github.com/gwennlbh/gh-api-playground/issues/5\n", "Some unrelated stuff haha")
+        return_value=MockedSubprocessOutput(
+            "https://github.com/gwennlbh/gh-api-playground/issues/5\n",
+            "Some unrelated stuff haha",
+        )
     )
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://github.com/ewen-lbh/gh-api-playground")
@@ -34,9 +40,9 @@ Another ~issue to submit @me"""
     del os.environ["ISSURGE_DRY_RUN"]
 
 
-@fixture
+@pytest.fixture
 def default_opts():
-    yield {
+    return {
         "<submitter-args>": [],
         "<file>": "test_empty_issues",
         "<words>": [],
@@ -46,37 +52,34 @@ def default_opts():
     }
 
 
-@test("dry run is set when --dry-run is passed")
-def _(_=setup, opts=default_opts):
-    run(opts=opts | {"--dry-run": True})
+def test_dry_run_is_set_when_dry_run_is_passed(setup, default_opts):
+    run(opts={**default_opts, "--dry-run": True})
     assert dry_running()
     assert not debugging()
 
 
-@test("debug is set when --debug is passed")
-def _(_=setup, opts=default_opts):
-    run(opts=opts | {"--debug": True})
+def test_debug_is_set_when_debug_is_passed(setup, default_opts):
+    run(opts={**default_opts, "--debug": True})
     assert debugging()
     assert not dry_running()
 
 
-@test("dry run and debug are not set by default")
-def _(_=setup, opts=default_opts):
-    run(opts=opts)
+def test_dry_run_and_debug_are_not_set_by_default(setup, default_opts):
+    run(opts=default_opts)
     assert not dry_running()
     assert not debugging()
 
 
-@test("both dry run and debug are set when both are passed")
-def _(_=setup, opts=default_opts):
-    run(opts=opts | {"--dry-run": True, "--debug": True})
+def test_both_dry_run_and_debug_are_set_when_both_are_passed(setup, default_opts):
+    run(opts={**default_opts, "--dry-run": True, "--debug": True})
     assert dry_running()
     assert debugging()
 
 
-@test("issues are submitted when --dry-run is not passed, with github provider")
-def _(_=setup, opts=default_opts):
-    run(opts=opts | {"<file>": "test_some_issues"})
+def test_issues_are_submitted_when_dry_run_is_not_passed_with_github_provider(
+    setup, default_opts
+):
+    run(opts={**default_opts, "<file>": "test_some_issues"})
     assert [call.args[0] for call in subprocess.run.mock_calls] == [
         [
             "gh",
@@ -109,12 +112,13 @@ def _(_=setup, opts=default_opts):
     ]
 
 
-@test("issues are submitted when --dry-run is not passed, with gitlab provider")
-def _(_=setup, opts=default_opts):
+def test_issues_are_submitted_when_dry_run_is_not_passed_with_gitlab_provider(
+    setup, default_opts
+):
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://gitlab.com/ewen-lbh/gh-api-playground")
     )
-    run(opts=opts | {"<file>": "test_some_issues"})
+    run(opts={**default_opts, "<file>": "test_some_issues"})
     assert [call.args[0] for call in subprocess.run.mock_calls] == [
         [
             "glab",
@@ -147,17 +151,17 @@ def _(_=setup, opts=default_opts):
     ]
 
 
-@test("issues are not submitted when --dry-run is passed")
-def _(_=setup, opts=default_opts):
-    run(opts=opts | {"<file>": "test_some_issues", "--dry-run": True})
+def test_issues_are_not_submitted_when_dry_run_is_passed(setup, default_opts):
+    run(opts={**default_opts, "<file>": "test_some_issues", "--dry-run": True})
     assert len(subprocess.run.mock_calls) == 0
 
 
-@test("issues are not submitted when --dry-run is passed, in interactive mode")
-def _(_=setup, opts=default_opts):
+def test_issues_are_not_submitted_when_dry_run_is_passed_in_interactive_mode(
+    setup, default_opts
+):
     run(
-        opts=opts
-        | {
+        opts={
+            **default_opts,
             "new": True,
             "--dry-run": True,
             "<words>": ["testing", "~this", "issue", "@me"],
@@ -166,13 +170,12 @@ def _(_=setup, opts=default_opts):
     assert len(subprocess.run.mock_calls) == 0
 
 
-@test(
-    "issues are submitted when --dry-run is not passed, in interactive mode, github provider"
-)
-def _(_=setup, opts=default_opts):
+def test_issues_are_submitted_when_dry_run_is_not_passed_in_interactive_mode_github_provider(
+    setup, default_opts
+):
     run(
-        opts=opts
-        | {
+        opts={
+            **default_opts,
             "new": True,
             "<words>": ["testing", "~this", "issue", "@me"],
         }
@@ -194,16 +197,15 @@ def _(_=setup, opts=default_opts):
     ]
 
 
-@test(
-    "issues are submitted when --dry-run is not passed, in interactive mode, gitlab provider"
-)
-def _(_=setup, opts=default_opts):
+def test_issues_are_submitted_when_dry_run_is_not_passed_in_interactive_mode_gitlab_provider(
+    setup, default_opts
+):
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://gitlab.com/ewen-lbh/gh-api-playground")
     )
     run(
-        opts=opts
-        | {
+        opts={
+            **default_opts,
             "new": True,
             "<words>": ["testing", "~this", "issue", "@me"],
         }
