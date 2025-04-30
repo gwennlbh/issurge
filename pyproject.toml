@@ -22,7 +22,7 @@ dev = [
 [tool.uv]
 
 [tool.pytest.ini_options]
-addopts = "--cov=issurge --cov-report xml"
+addopts = "--cov --cov-report xml --junitxml=junit.xml -o junit_family=legacy"
 
 [build-system]
 requires = ["hatchling"]

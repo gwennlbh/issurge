@@ -3,3 +3,4 @@ issurge/__pycache__
 .coverage
 coverage.xml
 aur/
+junit.xml
