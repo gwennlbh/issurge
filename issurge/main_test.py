@@ -31,7 +31,7 @@ Another ~issue to submit @me"""
         )
     )
     Issue._get_remote_url = Mock(
-        return_value=urlparse("https://github.com/ewen-lbh/gh-api-playground")
+        return_value=urlparse("https://github.com/gwennlbh/gh-api-playground")
     )
     yield
     Path("test_empty_issues").unlink()
@@ -116,7 +116,7 @@ def test_issues_are_submitted_when_dry_run_is_not_passed_with_gitlab_provider(
     setup, default_opts
 ):
     Issue._get_remote_url = Mock(
-        return_value=urlparse("https://gitlab.com/ewen-lbh/gh-api-playground")
+        return_value=urlparse("https://gitlab.com/gwennlbh/gh-api-playground")
     )
     run(opts={**default_opts, "<file>": "test_some_issues"})
     assert [call.args[0] for call in subprocess.run.mock_calls] == [
@@ -201,7 +201,7 @@ def test_issues_are_submitted_when_dry_run_is_not_passed_in_interactive_mode_git
     setup, default_opts
 ):
     Issue._get_remote_url = Mock(
-        return_value=urlparse("https://gitlab.com/ewen-lbh/gh-api-playground")
+        return_value=urlparse("https://gitlab.com/gwennlbh/gh-api-playground")
     )
     run(
         opts={

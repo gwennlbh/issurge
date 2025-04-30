@@ -2,14 +2,14 @@
   "name": "issurge",
   "displayName": "issurge",
   "description": "Syntax highlighting for the issurge language",
-  "publisher": "ewen-lbh",
+  "publisher": "gwennlbh",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.99.3"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ewen-lbh/issurge",
+    "url": "https://github.com/gwennlbh/issurge",
     "directory": "vscode-extension"
   },
   "categories": [

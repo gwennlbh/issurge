@@ -1,6 +1,6 @@
 # issurge
 
-![GitHub branch checks state](https://img.shields.io/github/checks-status/ewen-lbh/issurge/main) ![Codecov](https://img.shields.io/codecov/c/github/ewen-lbh/issurge)
+![GitHub branch checks state](https://img.shields.io/github/checks-status/gwennlbh/issurge/main) ![Codecov](https://img.shields.io/codecov/c/github/gwennlbh/issurge)
 
 Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file.
 
