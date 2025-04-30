@@ -1,6 +1,6 @@
 [project]
 name = "issurge"
-version = "0.6.1"
+version = "0.6.2"
 description = "Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file."
 authors = [{ name = "Gwenn Le Bihan", email = "gwenn.lebihan7@gmail.com" }]
 requires-python = ">=3.10"
