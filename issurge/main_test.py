@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from unittest.mock import Mock
 from urllib.parse import urlparse
+import webbrowser
 
 import pytest
 
@@ -30,6 +31,7 @@ Another ~issue to submit @me"""
             "Some unrelated stuff haha",
         )
     )
+    webbrowser.open = Mock()
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://github.com/gwennlbh/gh-api-playground")
     )
@@ -116,6 +118,12 @@ def test_issues_are_submitted_when_dry_run_is_not_passed_with_github_provider(
 def test_issues_are_submitted_when_dry_run_is_not_passed_with_gitlab_provider(
     setup, default_opts
 ):
+    subprocess.run = Mock(
+        return_value=MockedSubprocessOutput(
+            "https://gitlab.com/gwennlbh/gh-api-playground/-/issues/5\n",
+            "Some unrelated stuff haha",
+        )
+    )
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://gitlab.com/gwennlbh/gh-api-playground")
     )
@@ -201,6 +209,12 @@ def test_issues_are_submitted_when_dry_run_is_not_passed_in_interactive_mode_git
 def test_issues_are_submitted_when_dry_run_is_not_passed_in_interactive_mode_gitlab_provider(
     setup, default_opts
 ):
+    subprocess.run = Mock(
+        return_value=MockedSubprocessOutput(
+            "https://gitlab.com/gwennlbh/gh-api-playground/-/issues/5\n",
+            "Some unrelated stuff haha",
+        )
+    )
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://gitlab.com/gwennlbh/gh-api-playground")
     )
@@ -224,5 +238,90 @@ def test_issues_are_submitted_when_dry_run_is_not_passed_in_interactive_mode_git
             "@me",
             "-l",
             "this",
+        ],
+    ]
+
+
+def test_issues_are_opened_when_open_is_passed_github_provider(setup, default_opts):
+    run(opts={**default_opts, "<file>": "test_some_issues", "--open": True})
+    assert [call.args for call in webbrowser.open.mock_calls] == [
+        ("https://github.com/gwennlbh/gh-api-playground/issues/5",),
+        ("https://github.com/gwennlbh/gh-api-playground/issues/5",),
+    ]
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "An issue to submit",
+            "-b",
+            "",
+            "-a",
+            "common",
+            "-l",
+            "common",
+            "-m",
+            "common",
+        ],
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "Another issue to submit",
+            "-b",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "issue",
+        ],
+    ]
+
+
+def test_issues_are_opened_when_open_is_passed_gitlab_provider(setup, default_opts):
+    subprocess.run = Mock(
+        return_value=MockedSubprocessOutput(
+            "https://gitlab.com/gwennlbh/gh-api-playground/-/issues/5\n",
+            "Some unrelated stuff haha",
+        )
+    )
+    Issue._get_remote_url = Mock(
+        return_value=urlparse("https://gitlab.com/gwennlbh/gh-api-playground")
+    )
+    run(opts={**default_opts, "<file>": "test_some_issues", "--open": True})
+    assert [tuple(call.args) for call in webbrowser.open.mock_calls] == [
+        ("https://gitlab.com/gwennlbh/gh-api-playground/-/issues/5",),
+        ("https://gitlab.com/gwennlbh/gh-api-playground/-/issues/5",),
+    ]
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "glab",
+            "issue",
+            "new",
+            "-t",
+            "An issue to submit",
+            "-d",
+            "",
+            "-a",
+            "common",
+            "-l",
+            "common",
+            "-m",
+            "common",
+        ],
+        [
+            "glab",
+            "issue",
+            "new",
+            "-t",
+            "Another issue to submit",
+            "-d",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "issue",
         ],
     ]

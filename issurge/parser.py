@@ -58,7 +58,7 @@ class Issue(NamedTuple):
     labels: set[str] = set()
     assignees: set[str] = set()
     milestone: str = ""
-    reference: int|None = None
+    reference: int | None = None
 
     def __rich_repr__(self):
         yield self.title
@@ -115,18 +115,21 @@ class Issue(NamedTuple):
 
         return references
 
-    def resolve_references(self, resolution_map: dict[int, int], strict=False) -> 'Issue':
+    def resolve_references(
+        self, resolution_map: dict[int, int], strict=False
+    ) -> "Issue":
         resolved_description = self.description
         for reference in self.references:
-            if (resolved := resolution_map.get(reference)):
-                resolved_description = resolved_description.replace(f"#.{reference}", f"#{resolved}")
+            if resolved := resolution_map.get(reference):
+                resolved_description = resolved_description.replace(
+                    f"#.{reference}", f"#{resolved}"
+                )
             elif strict:
                 raise Exception(f"Could not resolve reference #.{reference}")
 
         return Issue(**(self._asdict() | {"description": resolved_description}))
-            
 
-    def submit(self, submitter_args: list[str]) -> tuple[str|None, int|None]:
+    def submit(self, submitter_args: list[str]) -> tuple[str | None, int | None]:
         remote_url = self._get_remote_url()
         if remote_url.hostname == "github.com":
             return self._github_submit(submitter_args)
@@ -135,7 +138,7 @@ class Issue(NamedTuple):
 
     def _get_remote_url(self):
         try:
-            origin =  subprocess.run(
+            origin = subprocess.run(
                 ["git", "remote", "get-url", "origin"], capture_output=True
             ).stdout.decode()
             # fake an HTTPs URL from a SSH one
@@ -147,7 +150,9 @@ class Issue(NamedTuple):
                 "Could not determine remote url, make sure that you are inside of a git repository that has a remote named 'origin'"
             ) from e
 
-    def _gitlab_submit(self, submitter_args: list[str]) -> tuple[str|None, int|None]:
+    def _gitlab_submit(
+        self, submitter_args: list[str]
+    ) -> tuple[str | None, int | None]:
         command = ["glab", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -162,12 +167,14 @@ class Issue(NamedTuple):
         out = self._run(command)
         # parse issue number from command output url: https://.+/-/issues/(\d+)
         if out and (url := re.search(r"https://.+/-/issues/(\d+)", out)):
-            return url, int(url.group(1))
-        
+            return url.group(0), int(url.group(1))
+
         # raise Exception(f"Could not parse issue number from {out!r}")
         return None, None
 
-    def _github_submit(self, submitter_args: list[str]) -> tuple[str|None, int|None]:
+    def _github_submit(
+        self, submitter_args: list[str]
+    ) -> tuple[str | None, int | None]:
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -183,7 +190,7 @@ class Issue(NamedTuple):
         # parse issue number from command output url: https://github.com/.+/issues/(\d+)
         pattern = re.compile(r"https:\/\/github\.com\/.+\/issues\/(\d+)")
         if out and (url := pattern.search(out)):
-            return url, int(url.group(1))
+            return url.group(0), int(url.group(1))
 
         # raise Exception(f"Could not parse issue number from {out!r}, looked for regex {pattern}")
         return None, None
@@ -266,7 +273,7 @@ class Issue(NamedTuple):
                 labels=labels,
                 assignees=assignees,
                 milestone=milestone,
-                reference=reference 
+                reference=reference,
             ),
             expects_description,
         )
@@ -291,7 +298,7 @@ def parse_issue_fragment(
     if not cli_options:
         cli_options = {}
     log = lambda *args, **kwargs: print(
-        f"[white]{issue_fragment[:50]: <50}[/white]\t{TAB*recursion_depth}",
+        f"[white]{issue_fragment[:50]: <50}[/white]\t{TAB * recursion_depth}",
         *args,
         **kwargs,
     )
@@ -326,7 +333,7 @@ def parse_issue_fragment(
         labels=current_labels,
         assignees=current_assignees,
         milestone=current_milestone,
-        reference=parsed.reference
+        reference=parsed.reference,
     )
 
     if current_issue.title:
