@@ -107,11 +107,12 @@ class Issue(NamedTuple):
 
     @property
     def references(self) -> set[int]:
-        # find all \b#\.(\d+)\b in description
+        # find all #\.(\d+)\b in description
         references = set()
-        for word in self.description.strip().split(" "):
-            if word.startswith("#.") and word[2:].strip().isdigit():
-                references.add(int(word[2:].strip()))
+        for match in re.finditer(
+            r"#\.(?P<num>\d+)(\b|$)", self.description, flags=re.MULTILINE
+        ):
+            references.add(int(match.group("num")))
 
         return references
 

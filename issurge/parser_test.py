@@ -164,6 +164,18 @@ An issue that references another ~blocked:
                 ),
             ],
         ),
+        (
+            """
+Thing:
+\tSee issue #.1, #.2
+            """,
+            [
+                Issue(
+                    title="Thing",
+                    description="See issue #.1, #.2\n",
+                )
+            ]
+        )
     ],
 )
 def test_parse_issues(lines, expected):
@@ -175,6 +187,12 @@ def test_resolves_references():
     assert issue.references == {2}
     issue = issue.resolve_references({2: 1})
     assert issue.description == "See #1\n"
+
+def test_resolves_references_with_commas():
+    [issue, *_] = list(parse("An issue that references another ~blocked:\n\tSee #.1, #.2"))
+    assert issue.references == {1, 2}
+    issue = issue.resolve_references({1: 3, 2: 4})
+    assert issue.description == "See #3, #4\n"
 
 
 def test_splits_sigil():

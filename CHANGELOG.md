@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed an issue where a issue reference was not replaced when followed by a non-space punctuation character (e.g. `see #.1, #.2` would not replace `#.1`) (#15)
+
 ## [1.0.0] - 2025-05-01
 
 ### Added
