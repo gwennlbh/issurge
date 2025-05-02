@@ -51,8 +51,8 @@ jobs:
         run: uv run pytest
       - name: Build Python package
         run: uv build
-      # - name: Publish to PyPI
-      #   run: uv publish
+      - name: Publish to PyPI
+        run: uv publish
       - name: Get changelog changes
         id: changelog
         run: |
