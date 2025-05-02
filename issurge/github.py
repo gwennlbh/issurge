@@ -18,7 +18,6 @@ class OwnerInfo(NamedTuple):
 
 @cache
 def repo_info():
-    print("not stubbed :(")
     response = json.loads(
         run(["gh", "repo", "view", "--json", "isInOrganization,owner,name"])
     )
