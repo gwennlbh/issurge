@@ -22,9 +22,10 @@ pipx install issurge
 ```
 
 > [!TIP]
-> You can also use [uv](https://docs.astral.sh/uv/)'s `pipxu`, it's just like `pipx` but wayyy faster.
+> You can also use [uv's `tool` subcommand](https://docs.astral.sh/uv/guides/tools/#installing-tools), it's just like `pipx` but wayyy faster.
+>
 > ```
-> pipxu install issurge
+> uv tool install issurge
 > ```
 
 ### Arch Linux
@@ -34,7 +35,6 @@ Issurge is [on the AUR](https://aur.archlinux.org/packages/issurge/), so you can
 ```
 paru -S issurge
 ```
-
 
 ## Usage
 
@@ -98,7 +98,7 @@ As you might know, you can link an issue to another by using `#NUMBER`, with `NU
 First issue
 
 Second issue:
-  Needs #11  
+  Needs #11
 ```
 
 However, this assumes that the current latest issue, before running issurge on this file, is `#9`. It also assumes that issues get created in order (which is the case for now), and that no other issue will get created while running issurge.
@@ -127,8 +127,8 @@ If you end the line with `:`, issurge will prompt you for more lines.
 $ issurge --debug new ~enhancement add an interactive \"one-shot\" mode @me:
 Please enter a description for the issue (submit 2 empty lines to finish):
 > Basically allow users to enter an issue fragment directly on the command line with a subcommand, and if it expects a description, prompt for it
-> 
-> 
+>
+>
 Submitting add an interactive "one-shot"  (...) ~enhancement @me [...]
 Running gh issue new -t "add an interactive \"one-shot\" mode" -b "Basically allow users to enter an issue fragment directly on the command line with a subcommand, and if it expects a description, prompt for it" -a @me -l enhancement
 ```
