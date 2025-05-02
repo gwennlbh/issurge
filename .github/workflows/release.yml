@@ -1,0 +1,33 @@
+name: Trigger release
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  trigger-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.3"
+      - uses: yezz123/setup-uv@v4
+      - uses: alirezatheh/auto-bump-versions@v1
+        id: bump
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          use-bumpver: false
+      - run: uv run bumpver update --set-version ${{ steps.bump.outputs.new-version }}
+      - name: Update changelog
+        uses: natescherer/changelog-management-action@v1
+        with:
+          mode: release
+          releaseVersion: ${{ steps.bump.outputs.new-version }}
+      - name: Commit and tag changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "🔖 Release ${{ steps.bump.outputs.new-version }}"
+          tag: v${{ steps.bump.outputs.new-version }}

@@ -34,8 +34,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-
-
   upload-package:
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
@@ -54,7 +52,11 @@ jobs:
         run: uv build
       - name: Publish to PyPI
         run: uv publish
+      - name: Get changelog changes
+        id: changelog
+        uses: natescherer/changelog-management-action@v1
       - name: Create github release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
+          body: ${{ steps.changelog.outputs.releaseNotes }}

@@ -23,14 +23,29 @@ issurge = "issurge.main:run"
 
 [dependency-groups]
 dev = [
+    "bumpver>=2024.1130",
     "pytest>=8.3.5",
- "pytest-cov>=6.1.1",
+    "pytest-cov>=6.1.1",
 ]
 
 [tool.uv]
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report xml --junitxml=junit.xml -o junit_family=legacy"
+
+[tool.bumpver]
+current_version = "1.0.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+tag_message = "v{new_version}"
+tag_scope = "default"
+commit = false
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
 
 [build-system]
 requires = ["hatchling"]
