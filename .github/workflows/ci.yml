@@ -73,7 +73,7 @@ jobs:
       #     files: dist/*
       #     body: ${{ steps.changelog.outputs.releaseNotes }}
       - name: Update PKGBUILD
-        run: uvx pypi2aur update issurge
+        run: uvx pypi2aur update
       - run: git diff
       # - name: Publish to AUR
       #   uses: KSXGitHub/github-actions-deploy-aur@v3
