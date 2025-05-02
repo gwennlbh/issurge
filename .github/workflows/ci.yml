@@ -63,11 +63,11 @@ jobs:
         run: |
           echo "Release notes: ${{ steps.changelog.outputs.releaseNotes }}"
           echo "Release version: ${{ github.ref_name }}"
-      # - name: Create github release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     files: dist/*
-      #     body: ${{ steps.changelog.outputs.releaseNotes }}
+      - name: Create github release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          body: ${{ steps.changelog.outputs.releaseNotes }}
       - name: Update PKGBUILD
         run: uvx pypi2aur update || exit 0
       - run: git diff
