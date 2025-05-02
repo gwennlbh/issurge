@@ -57,7 +57,7 @@ issurge --help
 Indentation is done with tab characters only.
 
 - **Title:** The title is made up of any word in the line that does not start with `~`, `@`, `%` or `#.`. Words that start with any of these symbols will not be added to the title, except if they are in the middle (in that case, they both get added as tags/assignees/milestones and as a word in the title, without the prefix symbol)
-- **Tags:** Prefix a word with `~` to add a label to the issue
+- **Tags:** Prefix a word with `~` to add a label to the issue. For github repositories under an organization, if the label case-insensitively matches a defined issue type, the label will not be added, but the issue type will be set. Setting multiple issue types results in an error.
 - **Assignees:** Prefix with `@` to add an assignee. The special assignee `@me` is supported.
 - **Milestone:** Prefix with `%` to set the milestone
 - **References:** Prefix with `#.NUMBER` to define a reference for this issue. See [Cross-reference other issues](#cross-reference-other-issues) for more information.

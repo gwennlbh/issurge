@@ -22,3 +22,9 @@ jobs:
         run: uv run pytest
       - name: Build Python package
         run: uv build
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true

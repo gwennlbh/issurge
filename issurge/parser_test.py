@@ -204,3 +204,4 @@ def test_parse_issue_with_missing_description_fails():
         ValueError, match="Expected a description after 'An ~issue with a description:'"
     ):
         list(parse("An ~issue with a description:\nNo description here"))
+
