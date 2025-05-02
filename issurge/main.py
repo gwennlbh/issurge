@@ -36,8 +36,8 @@ def run(opts=None):
     if opts["new"]:
         issue = interactive.create_issue(" ".join(opts["<words>"]))
         debug(f"Submitting {issue.display()}")
-        number = issue.submit(opts["<submitter-args>"])
-        print(f"Created issue #{number}")
+        number, url = issue.submit(opts["<submitter-args>"])
+        print(f"Created issue #{number}: {url}")
     else:
         print("Submitting issues...")
         references_resolutions: dict[int, int] = {}
@@ -46,7 +46,7 @@ def run(opts=None):
                 references_resolutions, strict=not dry_running()
             )
             url, number = issue.submit(opts["<submitter-args>"])
-            print(f"Created issue #{number}")
+            print(f"Created issue #{number}: {url}")
             if issue.reference and number:
                 references_resolutions[issue.reference] = number
             if opts["--open"] and url:

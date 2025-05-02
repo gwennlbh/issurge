@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - A leftover "not stubbed :(" debug log was printed 
+- One-shot mode message used a weird "Created issue #(number, url)" format
+
+### Changed
+
+- "Created issue" messages now include the URL to the issue
 
 ## [1.1.0] - 2025-05-02
 
