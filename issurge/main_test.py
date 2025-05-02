@@ -1,15 +1,14 @@
 import os
+import webbrowser
 from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.parse import urlparse
-import webbrowser
 
 import pytest
 
+import issurge.github
 from issurge.main import run
 from issurge.parser import Issue, subprocess
-import issurge
-from issurge.github import GithubOwnerInfo
 from issurge.utils import debugging, dry_running
 
 
@@ -38,10 +37,10 @@ Another ~issue to submit @me"""
         return_value=urlparse("https://github.com/gwennlbh/gh-api-playground")
     )
     with (
-        patch("issurge.github.github_repo_info") as repo_info,
-        patch("issurge.github.github_available_issue_types") as available_issue_types,
+        patch("issurge.github.repo_info") as repo_info,
+        patch("issurge.github.available_issue_types") as available_issue_types,
     ):
-        repo_info.return_value = GithubOwnerInfo(
+        repo_info.return_value = issurge.github.OwnerInfo(
             in_organization=True,
             owner="gwennlbh",
             repo="gh-api-playground",
@@ -341,10 +340,32 @@ def test_issues_are_opened_when_open_is_passed_gitlab_provider(setup, default_op
 
 def test_cannot_set_two_issue_types(setup, default_opts):
     with (
-        patch("issurge.github.github_repo_info") as repo_info,
-        patch("issurge.github.github_available_issue_types") as available_issue_types,
+        patch("issurge.github.repo_info") as repo_info,
+        patch("issurge.github.available_issue_types") as available_issue_types,
     ):
-        repo_info.return_value = GithubOwnerInfo(
+        repo_info.return_value = issurge.github.OwnerInfo(
+            in_organization=True,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+        available_issue_types.return_value = ["Bug", "Feature", "Task"]
+        with pytest.raises(SystemExit):
+            run(
+                opts={
+                    **default_opts,
+                    "<file>": "",
+                    "<words>": ["testing", "~this", "~feature", "@me", "~bug"],
+                    "new": True,
+                }
+            )
+
+
+def test_set_issue_type(setup, default_opts):
+    with (
+        patch("issurge.github.repo_info") as repo_info,
+        patch("issurge.github.available_issue_types") as available_issue_types,
+    ):
+        repo_info.return_value = issurge.github.OwnerInfo(
             in_organization=True,
             owner="gwennlbh",
             repo="gh-api-playground",
@@ -354,9 +375,31 @@ def test_cannot_set_two_issue_types(setup, default_opts):
             opts={
                 **default_opts,
                 "<file>": "",
-                "<words>": ["testing", "~this", "~feature", "@me", "~bug"],
+                "<words>": ["testing", "~this", "~feature", "wow", "@me"],
                 "new": True,
             }
         )
-        assert len(repo_info.mock_calls) > 0
-        assert len(available_issue_types.mock_calls) > 0
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "testing this feature wow",
+            "-b",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "this",
+        ],
+        [
+            "gh",
+            "api",
+            "-X",
+            "PATCH",
+            "/repos/gwennlbh/gh-api-playground/issues/5",
+            "-F",
+            "type=Feature",
+        ],
+    ]

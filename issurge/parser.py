@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from rich import print
 
-from issurge.github import github_available_issue_types, github_repo_info
+from issurge import github
 from issurge.utils import NEWLINE, TAB, debug, run
 
 
@@ -177,7 +177,7 @@ class Issue(NamedTuple):
     def _github_submit(
         self, submitter_args: list[str]
     ) -> tuple[str | None, int | None]:
-        available_issue_types = github_available_issue_types()
+        available_issue_types = github.available_issue_types()
         issue_types_to_add = [
             t
             for t in available_issue_types
@@ -215,7 +215,7 @@ class Issue(NamedTuple):
             number = int(url.group(1))
 
             if issue_type:
-                repo = github_repo_info()
+                repo = github.repo_info()
                 run(
                     [
                         "gh",
