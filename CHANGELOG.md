@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-05-02
+
 ### Fixed
 
 - Fixed an issue where a issue reference was not replaced when followed by a non-space punctuation character (e.g. `see #.1, #.2` would not replace `#.1`) (#15)
@@ -85,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0]
 
-[Unreleased]: https://github.com/gwennlbh/issurge/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/gwennlbh/issurge/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/gwennlbh/issurge/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/gwennlbh/issurge/compare/v0.6.2...v1.0.0
 [0.6.3]: https://github.com/gwennlbh/issurge/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/gwennlbh/issurge/compare/v0.6.1...v0.6.2
