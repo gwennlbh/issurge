@@ -8,6 +8,8 @@ import pytest
 
 from issurge.main import run
 from issurge.parser import Issue, subprocess
+import issurge
+from issurge.github import GithubOwnerInfo
 from issurge.utils import debugging, dry_running
 
 
@@ -32,6 +34,13 @@ Another ~issue to submit @me"""
         )
     )
     webbrowser.open = Mock()
+    issurge.github.github_repo_info = Mock(
+        return_value=GithubOwnerInfo(
+            in_organization=False,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+    )
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://github.com/gwennlbh/gh-api-playground")
     )
@@ -325,3 +334,26 @@ def test_issues_are_opened_when_open_is_passed_gitlab_provider(setup, default_op
             "issue",
         ],
     ]
+
+
+def test_cannot_set_two_issue_types(setup, default_opts):
+    issurge.github.github_repo_info = Mock(
+        return_value=GithubOwnerInfo(
+            in_organization=True,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+    )
+    issurge.github.github_available_issue_types = Mock(
+        return_value=["Bug", "Feature", "Task"]
+    )
+    run(
+        opts={
+            **default_opts,
+            "<file>": "",
+            "<words>": ["testing", "~this", "~feature", "@me", "~bug"],
+            "new": True,
+        }
+    )
+    assert len(issurge.github.github_available_issue_types.mock_calls) == 1
+    assert len(issurge.github.github_repo_info.mock_calls) == 1

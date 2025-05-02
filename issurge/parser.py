@@ -1,12 +1,13 @@
-import os
 import re
 import subprocess
+from sys import exit
 from typing import Any, Iterable, NamedTuple
 from urllib.parse import urlparse
 
 from rich import print
 
-from issurge.utils import NEWLINE, TAB, debug, debugging, dry_running
+from issurge.github import github_available_issue_types, github_repo_info
+from issurge.utils import NEWLINE, TAB, debug, run
 
 
 class Node:
@@ -165,7 +166,7 @@ class Issue(NamedTuple):
         if self.milestone:
             command += ["-m", self.milestone]
         command.extend(submitter_args)
-        out = self._run(command)
+        out = run(command)
         # parse issue number from command output url: https://.+/-/issues/(\d+)
         if out and (url := re.search(r"https://.+/-/issues/(\d+)", out)):
             return url.group(0), int(url.group(1))
@@ -176,6 +177,21 @@ class Issue(NamedTuple):
     def _github_submit(
         self, submitter_args: list[str]
     ) -> tuple[str | None, int | None]:
+        available_issue_types = github_available_issue_types()
+        issue_types_to_add = [
+            t
+            for t in available_issue_types
+            if t.lower() in (l.lower() for l in self.labels)
+        ]
+
+        if len(issue_types_to_add) > 1:
+            print(
+                f"[red bold]Cannot add multiple issue types: [/] {', '.join(issue_types_to_add)}"
+            )
+            exit(1)
+
+        issue_type = issue_types_to_add[0] if issue_types_to_add else None
+
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -183,32 +199,39 @@ class Issue(NamedTuple):
         for a in self.assignees:
             command += ["-a", a if a != "me" else "@me"]
         for l in self.labels:
+            # issue type will be set later with a REST API call
+            # (see https://github.com/cli/cli/issues/9696)
+            if issue_type and l.lower() == issue_type.lower():
+                continue
             command += ["-l", l]
         if self.milestone:
             command += ["-m", self.milestone]
         command.extend(submitter_args)
-        out = self._run(command)
+        out = run(command)
         # parse issue number from command output url: https://github.com/.+/issues/(\d+)
         pattern = re.compile(r"https:\/\/github\.com\/.+\/issues\/(\d+)")
+
         if out and (url := pattern.search(out)):
-            return url.group(0), int(url.group(1))
+            number = int(url.group(1))
+
+            if issue_type:
+                repo = github_repo_info()
+                run(
+                    [
+                        "gh",
+                        "api",
+                        "-X",
+                        "PATCH",
+                        f"/repos/{repo.owner}/{repo.repo}/issues/{number}",
+                        "-F",
+                        f"type={issue_type}",
+                    ]
+                )
+
+            return url.group(0), number
 
         # raise Exception(f"Could not parse issue number from {out!r}, looked for regex {pattern}")
         return None, None
-
-    def _run(self, command):
-        if dry_running() or debugging():
-            print(
-                f"{'Would run' if dry_running() else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
-            )
-        if not dry_running():
-            try:
-                out = subprocess.run(command, check=True, capture_output=True)
-                return out.stderr.decode() + "\n" + out.stdout.decode()
-            except subprocess.CalledProcessError as e:
-                print(
-                    f"Calling [white bold]{e.cmd}[/] failed with code [white bold]{e.returncode}[/]:\n{NEWLINE.join(TAB + line for line in e.stderr.decode().splitlines())}"
-                )
 
     @staticmethod
     def _word_and_sigil(raw_word: str) -> tuple[str, str]:
