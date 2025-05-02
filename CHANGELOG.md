@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-05-02
+
 ### Added
 
 - On github repositories in organizations, using `~issuetype` will now set the issue's type instead of adding a label, if `issuetype` case-insensitively matches one of the issue's organization's issue types. Setting multiple issue types results in an error.
@@ -91,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0]
 
-[Unreleased]: https://github.com/gwennlbh/issurge/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/gwennlbh/issurge/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/gwennlbh/issurge/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/gwennlbh/issurge/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/gwennlbh/issurge/compare/v0.6.2...v1.0.0
 [0.6.3]: https://github.com/gwennlbh/issurge/compare/v0.6.2...v0.6.3
