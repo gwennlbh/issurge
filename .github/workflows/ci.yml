@@ -61,12 +61,12 @@ jobs:
         id: changelog
         run: |
           echo 'releaseNotes<<EOF' >> "$GITHUB_OUTPUT"
-          uv run keepachangelog show $(echo ${{ github.ref }} | cut -c 2-) >> "$GITHUB_OUTPUT"
+          uv run keepachangelog show $(echo ${{ github.ref_name }} | cut -c 2-) >> "$GITHUB_OUTPUT"
           echo 'EOF' >> "$GITHUB_OUTPUT"
       - name: Debug
         run: |
           echo "Release notes: ${{ steps.changelog.outputs.releaseNotes }}"
-          echo "Release version: ${{ github.ref }}"
+          echo "Release version: ${{ github.ref_name }}"
       # - name: Create github release
       #   uses: softprops/action-gh-release@v2
       #   with:
@@ -83,5 +83,5 @@ jobs:
       #     commit_username: ${{ secrets.AUR_USERNAME }}
       #     commit_email: ${{ secrets.AUR_EMAIL }}
       #     ssh_private_key: ${{ secrets.AUR_PRIVATE_KEY }}
-      #     commit_message: "Update to ${{ github.ref }}"
+      #     commit_message: "Update to ${{ github.ref_name }}"
       #     ssh_keyscan_types: rsa,ecdsa,ed25519
