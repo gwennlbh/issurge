@@ -7,7 +7,7 @@ on:
         description: Bump type
         required: true
         type: choice
-        options: [major, minor, patch]
+        options: [patch, minor, major]
 
 permissions:
   contents: write
@@ -32,7 +32,6 @@ jobs:
           mode: release
           releaseVersion: ${{ steps.pyproject.outputs.local_version }}
       - name: Debug changes
-        if: steps.pyproject.outputs.local_version_is_higher == 'true'
         run: |
           git status
           echo New version: ${{ steps.pyproject.outputs.local_version }}
