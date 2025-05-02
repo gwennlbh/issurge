@@ -26,8 +26,14 @@ jobs:
         with:
           mode: release
           releaseVersion: ${{ steps.bump.outputs.new-version }}
-      - name: Commit and tag changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: "🔖 Release ${{ steps.bump.outputs.new-version }}"
-          tag: v${{ steps.bump.outputs.new-version }}
+      - name: Debug changes
+        run: |
+          git status
+          echo New version: ${{ steps.bump.outputs.new-version }}
+          echo Changes:
+          git diff
+      # - name: Commit and tag changes
+      #   uses: EndBug/add-and-commit@v9
+      #   with:
+      #     message: "🔖 Release ${{ steps.bump.outputs.new-version }}"
+      #     tag: v${{ steps.bump.outputs.new-version }}
