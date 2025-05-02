@@ -42,10 +42,7 @@ jobs:
       id-token: write
     steps:
       - name: Install pacman
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: pacman
-          version: 1
+        run: apt-get update && apt-get install -y pacman
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
