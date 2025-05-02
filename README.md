@@ -13,9 +13,28 @@ Deal with your client's feedback efficiently by creating a bunch of issues in bu
 
 ## Installation
 
+### With Pip(x)
+
+Issurge is distributed on [PyPI](https://pypi.org/project/issurge), so you can install it with `pipx` (recommended) or `pip`.
+
 ```
-pip install issurge
+pipx install issurge
 ```
+
+> [!TIP]
+> You can also use [uv](https://docs.astral.sh/uv/)'s `pipxu`, it's just like `pipx` but wayyy faster.
+> ```
+> pipxu install issurge
+> ```
+
+### Arch Linux
+
+Issurge is [on the AUR](https://aur.archlinux.org/packages/issurge/), so you can install it with your favorite AUR helper, such as [paru](https://aur.archlinux.org/packages/paru/):
+
+```
+paru -S issurge
+```
+
 
 ## Usage
 
