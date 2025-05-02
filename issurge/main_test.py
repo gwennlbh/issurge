@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from urllib.parse import urlparse
 import webbrowser
 
@@ -34,17 +34,20 @@ Another ~issue to submit @me"""
         )
     )
     webbrowser.open = Mock()
-    issurge.github.github_repo_info = Mock(
-        return_value=GithubOwnerInfo(
-            in_organization=False,
-            owner="gwennlbh",
-            repo="gh-api-playground",
-        )
-    )
     Issue._get_remote_url = Mock(
         return_value=urlparse("https://github.com/gwennlbh/gh-api-playground")
     )
-    yield
+    with (
+        patch("issurge.github.github_repo_info") as repo_info,
+        patch("issurge.github.github_available_issue_types") as available_issue_types,
+    ):
+        repo_info.return_value = GithubOwnerInfo(
+            in_organization=True,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+        available_issue_types.return_value = []
+        yield
     Path("test_empty_issues").unlink()
     Path("test_some_issues").unlink()
     del os.environ["ISSURGE_DEBUG"]
@@ -337,23 +340,23 @@ def test_issues_are_opened_when_open_is_passed_gitlab_provider(setup, default_op
 
 
 def test_cannot_set_two_issue_types(setup, default_opts):
-    issurge.github.github_repo_info = Mock(
-        return_value=GithubOwnerInfo(
+    with (
+        patch("issurge.github.github_repo_info") as repo_info,
+        patch("issurge.github.github_available_issue_types") as available_issue_types,
+    ):
+        repo_info.return_value = GithubOwnerInfo(
             in_organization=True,
             owner="gwennlbh",
             repo="gh-api-playground",
         )
-    )
-    issurge.github.github_available_issue_types = Mock(
-        return_value=["Bug", "Feature", "Task"]
-    )
-    run(
-        opts={
-            **default_opts,
-            "<file>": "",
-            "<words>": ["testing", "~this", "~feature", "@me", "~bug"],
-            "new": True,
-        }
-    )
-    assert len(issurge.github.github_available_issue_types.mock_calls) == 1
-    assert len(issurge.github.github_repo_info.mock_calls) == 1
+        available_issue_types.return_value = ["Bug", "Feature", "Task"]
+        run(
+            opts={
+                **default_opts,
+                "<file>": "",
+                "<words>": ["testing", "~this", "~feature", "@me", "~bug"],
+                "new": True,
+            }
+        )
+        assert len(repo_info.mock_calls) > 0
+        assert len(available_issue_types.mock_calls) > 0

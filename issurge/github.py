@@ -35,4 +35,4 @@ def github_available_issue_types():
     if not repo.in_organization:
         return []
     response = json.loads(run(["gh", "api", f"/orgs/{repo.owner}/issue-types"]))
-    return tuple(t["name"] for t in response)
+    return [t["name"] for t in response]
