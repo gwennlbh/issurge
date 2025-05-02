@@ -54,9 +54,24 @@ jobs:
         run: uv publish
       - name: Get changelog changes
         id: changelog
-        uses: natescherer/changelog-management-action@v1
+        run: |
+          echo 'releaseNotes<<EOF' >> "$GITHUB_OUTPUT"
+          uv run keepachangelog show $(echo ${{ github.ref }} | cut -c 2-) >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
       - name: Create github release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           body: ${{ steps.changelog.outputs.releaseNotes }}
+      - name: Update PKGBUILD
+        run: uvx pypi2aur update issurge
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v3
+        with:
+          pkgbuild: ./PKGBUILD
+          pkgname: issurge
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_PRIVATE_KEY }}
+          commit_message: "Update to ${{ github.ref }}"
+          ssh_keyscan_types: rsa,ecdsa,ed25519

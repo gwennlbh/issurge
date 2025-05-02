@@ -27,10 +27,7 @@ jobs:
         uses: maybe-hello-world/pyproject-check-version@v4
       - name: Update changelog
         if: steps.pyproject.outputs.local_version_is_higher == 'true'
-        uses: natescherer/changelog-management-action@v1
-        with:
-          mode: release
-          releaseVersion: ${{ steps.pyproject.outputs.local_version }}
+        run: uv run keepachangelog release ${{  steps.pyproject.outputs.local_version }}
       - name: Debug changes
         run: |
           git status
