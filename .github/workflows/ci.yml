@@ -73,13 +73,13 @@ jobs:
       - name: Update PKGBUILD
         run: uvx pypi2aur update || exit 0
       - run: git diff
-      # - name: Publish to AUR
-      #   uses: KSXGitHub/github-actions-deploy-aur@v3
-      #   with:
-      #     pkgbuild: ./PKGBUILD
-      #     pkgname: issurge
-      #     commit_username: ${{ secrets.AUR_USERNAME }}
-      #     commit_email: ${{ secrets.AUR_EMAIL }}
-      #     ssh_private_key: ${{ secrets.AUR_PRIVATE_KEY }}
-      #     commit_message: "Update to ${{ github.ref_name }}"
-      #     ssh_keyscan_types: rsa,ecdsa,ed25519
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v3
+        with:
+          pkgbuild: ./PKGBUILD
+          pkgname: issurge
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_PRIVATE_KEY }}
+          commit_message: "Update to ${{ github.ref_name }}"
+          ssh_keyscan_types: rsa,ecdsa,ed25519
