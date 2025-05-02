@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- On github repositories in organizations, using `~issuetype` will now set the issue's type instead of adding a label, if `issuetype` case-insensitively matches one of the issue's organization's issue types. Setting multiple issue types results in an error.
+
 ## [1.0.1] - 2025-05-02
 
 ### Fixed
