@@ -1,7 +1,13 @@
 name: Trigger release
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Bump type
+        required: true
+        type: choice
+        options: [major, minor, patch]
 
 permissions:
   contents: write
@@ -15,25 +21,26 @@ jobs:
         with:
           python-version: "3.13.3"
       - uses: yezz123/setup-uv@v4
-      - uses: alirezatheh/auto-bump-versions@v1
-        id: bump
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          use-bumpver: false
-      - run: uv run bumpver update --set-version ${{ steps.bump.outputs.new-version }}
+      - run: uv run bumpver update --${{ inputs.bump }}
+      - name: Get new version
+        id: pyproject
+        uses: maybe-hello-world/pyproject-check-version@v4
       - name: Update changelog
+        if: steps.pyproject.outputs.local_version_is_higher == 'true'
         uses: natescherer/changelog-management-action@v1
         with:
           mode: release
-          releaseVersion: ${{ steps.bump.outputs.new-version }}
+          releaseVersion: ${{ steps.pyproject.outputs.local_version }}
       - name: Debug changes
+        if: steps.pyproject.outputs.local_version_is_higher == 'true'
         run: |
           git status
-          echo New version: ${{ steps.bump.outputs.new-version }}
+          echo New version: ${{ steps.pyproject.outputs.local_version }}
           echo Changes:
           git diff
       # - name: Commit and tag changes
       #   uses: EndBug/add-and-commit@v9
+      #   if: steps.pyproject.outputs.local_version_is_higher == 'true'
       #   with:
-      #     message: "🔖 Release ${{ steps.bump.outputs.new-version }}"
-      #     tag: v${{ steps.bump.outputs.new-version }}
+      #     message: "🔖 Release ${{ steps.pyproject.outputs.local_version }}"
+      #     tag: v${{ steps.pyproject.outputs.local_version }}
