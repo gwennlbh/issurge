@@ -11,6 +11,10 @@
     {
       "matchDepTypes": ["requires-python"],
       "enabled": false
+    },
+    {
+      "matchPackageNames": ["vscode"],
+      "automerge": true
     }
   ],
   "lockFileMaintenance": {
