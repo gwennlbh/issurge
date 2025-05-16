@@ -6,7 +6,7 @@
   "packageRules": [
     {
       "matchDepTypes": ["devDependencies"],
-      "automerge": true
+      "enabled": true
     },
     {
       "matchDepTypes": ["requires-python"],
@@ -14,7 +14,7 @@
     },
     {
       "matchPackageNames": ["vscode"],
-      "automerge": true
+      "enabled": true
     }
   ],
   "lockFileMaintenance": {
