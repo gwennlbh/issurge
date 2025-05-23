@@ -1,6 +1,6 @@
 [project]
 name = "issurge"
-version = "1.1.0"
+version = "1.2.0"
 description = "Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file."
 authors = [{ name = "Gwenn Le Bihan", email = "gwenn.lebihan7@gmail.com" }]
 requires-python = ">=3.10"
@@ -35,7 +35,7 @@ dev = [
 addopts = "--cov --cov-report xml --junitxml=junit.xml -o junit_family=legacy"
 
 [tool.bumpver]
-current_version = "1.1.0"
+current_version = "1.2.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 tag_message = "v{new_version}"
 tag_scope = "default"
