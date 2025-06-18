@@ -161,7 +161,7 @@ requires-dist = [
 dev = [
     { name = "bumpver", specifier = ">=2024.1130" },
     { name = "keepachangelog", specifier = ">=2.0.0" },
-    { name = "pytest", specifier = ">=8.4.0" },
+    { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
 ]
 
