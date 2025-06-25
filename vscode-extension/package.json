@@ -5,7 +5,7 @@
   "publisher": "gwennlbh",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.101.1"
+    "vscode": "^1.101.2"
   },
   "repository": {
     "type": "git",
