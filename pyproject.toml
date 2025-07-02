@@ -23,7 +23,7 @@ issurge = "issurge.main:run"
 
 [dependency-groups]
 dev = [
-    "bumpver>=2024.1130",
+    "bumpver>=2025.1131",
     "keepachangelog>=2.0.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
