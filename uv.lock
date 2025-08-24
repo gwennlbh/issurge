@@ -175,7 +175,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "docopt", specifier = ">=0.6.2,<0.7" },
-    { name = "rich", specifier = ">=13.9.4,<15" },
+    { name = "rich", specifier = ">=14.1.0,<15" },
 ]
 
 [package.metadata.requires-dev]
