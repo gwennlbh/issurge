@@ -25,7 +25,7 @@ issurge = "issurge.main:run"
 dev = [
     "bumpver>=2025.1131",
     "keepachangelog>=2.0.0",
-    "pytest>=8.4.1",
+    "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
 ]
 
