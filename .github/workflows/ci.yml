@@ -1,10 +1,7 @@
 name: builds
 
 on:
-  pull_request: 
-    branches: [main]
-  push:
-    branches: [main]
+    branches: [develop, main]
     tags:
       - "v\\d+\\.\\d+\\.\\d+[ab]?"
   workflow_dispatch:
