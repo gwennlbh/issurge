@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }} 
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14.0"
@@ -40,3 +42,4 @@ jobs:
         with:
           message: "🔖 Release ${{ steps.pyproject.outputs.local_version }}"
           tag: v${{ steps.pyproject.outputs.local_version }}
+
