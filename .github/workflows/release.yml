@@ -16,7 +16,7 @@ jobs:
   trigger-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }} 
       - uses: actions/setup-python@v6
