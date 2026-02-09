@@ -264,7 +264,7 @@ class Issue(NamedTuple):
                     github.call_repo_api(
                         "POST",
                         f"issues/{parent_number}/sub_issues",
-                        sub_issue_id=number,
+                        sub_issue_id=github.issue_id(number),
                         replace_parent=True,
                     )
 

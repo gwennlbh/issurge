@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Parent issues would be added by adding the child issue's number instead of id (which resulted in a 404 from github's API)
+
 ## [1.3.1] - 2026-02-09
 
 ### Fixed

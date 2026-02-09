@@ -406,7 +406,11 @@ def test_set_issue_type(setup, default_opts):
 
 
 def test_set_issue_parent_direct_style(setup, default_opts):
-    with (patch("issurge.github.repo_info") as repo_info,):
+    with (
+        patch("issurge.github.repo_info") as repo_info,
+        patch("issurge.github.issue_id") as issue_id,
+    ):
+        issue_id.return_value = 123456
         repo_info.return_value = issurge.github.OwnerInfo(
             in_organization=True,
             owner="gwennlbh",
@@ -441,7 +445,7 @@ def test_set_issue_parent_direct_style(setup, default_opts):
             "POST",
             "/repos/gwennlbh/gh-api-playground/issues/45/sub_issues",
             "-F",
-            "sub_issue_id=5",
+            "sub_issue_id=123456",
             "-F",
             "replace_parent=true",
         ],
