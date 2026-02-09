@@ -386,6 +386,7 @@ def parse_issue_fragment(
     current_labels = set(current_issue.labels)
     current_assignees = set(current_issue.assignees)
     current_milestone = current_issue.milestone
+    current_parent = current_issue.parent
 
     parsed, expecting_description = Issue.parse(issue_fragment)
     if expecting_description:
@@ -408,7 +409,7 @@ def parse_issue_fragment(
         assignees=current_assignees,
         milestone=current_milestone,
         reference=parsed.reference,
-        parent=parsed.parent,
+        parent=parsed.parent or current_parent,
     )
 
     if current_issue.title:

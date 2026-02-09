@@ -180,8 +180,10 @@ Thing:
             """
 #.1 The parent issue
 
-^.1 Child one
-^.1 Child two
+^.1 ~feur
+\tChild one
+\tChild two
+\t^3 Wait no, this one is different!
 
 This one has no parent
 
@@ -189,8 +191,13 @@ This one has no parent
             """,
             [
                 Issue(title="The parent issue", reference=1),
-                Issue(title="Child one", parent=("reference", 1)),
-                Issue(title="Child two", parent=("reference", 1)),
+                Issue(title="Child one", parent=("reference", 1), labels={"feur"}),
+                Issue(title="Child two", parent=("reference", 1), labels={"feur"}),
+                Issue(
+                    title="Wait no, this one is different!",
+                    parent=("direct", 3),
+                    labels={"feur"},
+                ),
                 Issue(
                     title="This one has no parent",
                 ),

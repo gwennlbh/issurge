@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Parent was not inherited by child issues when using the `^` syntax to set the parent.
+
+  This is now the case, if a parent fragment sets the parent and a issue does not, it will inherit the parent issue from its parent fragment. If a issue sets its parent with the `^` syntax, it will override the parent fragment.
+
+  For example:
+
+  ```issurge
+  ^3
+    This one has parent #3
+    This one also has parent #3
+    ^5 This one has parent #5 instead of #3
+  ``` 
+   
 ## [1.3.0] - 2026-02-09
 
 ### Added
