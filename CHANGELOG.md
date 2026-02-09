@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2026-02-09
 
+### Added
+
+- Word `^n` or `^.n` to set parent of the issue we're creating to `n` (use `.n` to set the parent thru a reference)
+
+### Changed
+
+- Dropped Python 3.11 support
+
 ## [1.2.1] - 2025-10-13
 
 ### Changed
