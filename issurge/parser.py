@@ -215,17 +215,10 @@ class Issue(NamedTuple):
             number = int(url.group(1))
 
             if issue_type:
-                repo = github.repo_info()
-                run(
-                    [
-                        "gh",
-                        "api",
-                        "-X",
-                        "PATCH",
-                        f"/repos/{repo.owner}/{repo.repo}/issues/{number}",
-                        "-F",
-                        f"type={issue_type}",
-                    ]
+                github.call_repo_api(
+                    "PATCH",
+                    f"issues/{number}",
+                    type=issue_type,
                 )
 
             return url.group(0), number
