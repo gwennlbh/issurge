@@ -174,8 +174,31 @@ Thing:
                     title="Thing",
                     description="See issue #.1, #.2\n",
                 )
-            ]
-        )
+            ],
+        ),
+        (
+            """
+#.1 The parent issue
+
+^.1 Child one
+^.1 Child two
+
+This one has no parent
+
+^45 This one has a direct-style parent
+            """,
+            [
+                Issue(title="The parent issue", reference=1),
+                Issue(title="Child one", parent=("reference", 1)),
+                Issue(title="Child two", parent=("reference", 1)),
+                Issue(
+                    title="This one has no parent",
+                ),
+                Issue(
+                    title="This one has a direct-style parent", parent=("direct", 45)
+                ),
+            ],
+        ),
     ],
 )
 def test_parse_issues(lines, expected):
@@ -188,11 +211,22 @@ def test_resolves_references():
     issue = issue.resolve_references({2: 1})
     assert issue.description == "See #1\n"
 
+
 def test_resolves_references_with_commas():
-    [issue, *_] = list(parse("An issue that references another ~blocked:\n\tSee #.1, #.2"))
+    [issue, *_] = list(
+        parse("An issue that references another ~blocked:\n\tSee #.1, #.2")
+    )
     assert issue.references == {1, 2}
     issue = issue.resolve_references({1: 3, 2: 4})
     assert issue.description == "See #3, #4\n"
+
+
+def test_resolves_references_for_parents():
+    [parent, child, *_] = list(parse("#.1 The parent issue\n\n^.1 Child one"))
+    assert parent.reference == 1
+    assert child.parent == ("reference", 1)
+    child = child.resolve_references({1: 42})
+    assert child.parent == ("direct", 42)
 
 
 def test_splits_sigil():
@@ -204,4 +238,3 @@ def test_parse_issue_with_missing_description_fails():
         ValueError, match="Expected a description after 'An ~issue with a description:'"
     ):
         list(parse("An ~issue with a description:\nNo description here"))
-

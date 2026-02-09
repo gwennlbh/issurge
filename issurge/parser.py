@@ -1,7 +1,7 @@
 import re
 import subprocess
 from sys import exit
-from typing import Any, Iterable, NamedTuple
+from typing import Any, Iterable, Literal, NamedTuple
 from urllib.parse import urlparse
 
 from rich import print
@@ -60,6 +60,8 @@ class Issue(NamedTuple):
     assignees: set[str] = set()
     milestone: str = ""
     reference: int | None = None
+    # Direct means that the number refers to an actual github issue, where as reference means that it refers to a .N issue reference, in the same way that #.N references work in descriptions.
+    parent: tuple[Literal["reference", "direct"], int] | None = None
 
     def __rich_repr__(self):
         yield self.title
@@ -69,12 +71,19 @@ class Issue(NamedTuple):
         yield "milestone", self.milestone, ""
         yield "ref", self.reference, None
         yield "references", self.references, set()
+        yield "parent", self.parent, None
 
     def __str__(self) -> str:
         result = ""
         if self.reference:
             result += f"<#{self.reference}> "
         result += f"{self.title}" or "<No title>"
+        if self.parent:
+            match self.parent:
+                case ("reference", num):
+                    result += f" ^<{num}>"
+                case ("direct", num):
+                    result += f" ^{num}"
         if self.labels:
             result += f" {' '.join(['~' + l for l in self.labels])}"
         if self.milestone:
@@ -89,6 +98,12 @@ class Issue(NamedTuple):
         result = ""
         if self.reference:
             result += f"[bold blue]<#{self.reference}>[/bold blue] "
+        if self.parent:
+            match self.parent:
+                case ("reference", num):
+                    result += f"[blue dim]^<{num}>[/blue dim] "
+                case ("direct", num):
+                    result += f"[blue dim]^{num}[/blue dim] "
         result += f"[white]{self.title[:30]}[/white]" or "[red]<No title>[/red]"
         if len(self.title) > 30:
             result += " [white dim](...)[/white dim]"
@@ -129,7 +144,23 @@ class Issue(NamedTuple):
             elif strict:
                 raise Exception(f"Could not resolve reference #.{reference}")
 
-        return Issue(**(self._asdict() | {"description": resolved_description}))
+        parent = self.parent
+        match parent:
+            case None:
+                pass
+            case ("direct", _):
+                pass
+            case ("reference", reference):
+                if resolved := resolution_map.get(reference):
+                    parent = ("direct", resolved)
+                elif strict:
+                    raise Exception(f"Could not resolve parent reference ^.{reference}")
+                else:
+                    parent = None
+
+        return Issue(
+            **(self._asdict() | {"description": resolved_description, "parent": parent})
+        )
 
     def submit(self, submitter_args: list[str]) -> tuple[str | None, int | None]:
         remote_url = self._get_remote_url()
@@ -221,6 +252,22 @@ class Issue(NamedTuple):
                     type=issue_type,
                 )
 
+            match self.parent:
+                case None:
+                    pass
+                case ("reference", _):
+                    raise Exception(
+                        "Cannot set a reference-style parent on GitHub, only direct-style"
+                    )
+
+                case ("direct", parent_number):
+                    github.call_repo_api(
+                        "POST",
+                        f"issues/{parent_number}/sub_issues",
+                        sub_issue_id=number,
+                        replace_parent=True,
+                    )
+
             return url.group(0), number
 
         # raise Exception(f"Could not parse issue number from {out!r}, looked for regex {pattern}")
@@ -230,6 +277,10 @@ class Issue(NamedTuple):
     def _word_and_sigil(raw_word: str) -> tuple[str, str]:
         if raw_word.startswith("#.") and raw_word[2:].isdigit():
             return "#.", raw_word[2:]
+        if raw_word.startswith("^.") and raw_word[2:].isdigit():
+            return "^.", raw_word[2:]
+        if raw_word.startswith("^") and raw_word[1:].isdigit():
+            return "^", raw_word[1:]
 
         sigil = raw_word[0]
         word = raw_word[1:]
@@ -248,6 +299,7 @@ class Issue(NamedTuple):
             raw = raw[:-1].strip()
 
         title = ""
+        parent: tuple[Literal["reference", "direct"], int] | None = None
         description = ""
         labels = set()
         assignees = set()
@@ -273,6 +325,10 @@ class Issue(NamedTuple):
                     milestone = word
                 case "@":
                     assignees.add(word)
+                case "^":
+                    parent = ("direct", int(word))
+                case "^.":
+                    parent = ("reference", int(word))
                 case "#.":
                     reference = int(word)
                 case _:
@@ -291,6 +347,7 @@ class Issue(NamedTuple):
                 assignees=assignees,
                 milestone=milestone,
                 reference=reference,
+                parent=parent,
             ),
             expects_description,
         )
@@ -351,6 +408,7 @@ def parse_issue_fragment(
         assignees=current_assignees,
         milestone=current_milestone,
         reference=parsed.reference,
+        parent=parsed.parent,
     )
 
     if current_issue.title:

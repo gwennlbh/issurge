@@ -403,3 +403,46 @@ def test_set_issue_type(setup, default_opts):
             "type=Feature",
         ],
     ]
+
+
+def test_set_issue_parent_direct_style(setup, default_opts):
+    with (patch("issurge.github.repo_info") as repo_info,):
+        repo_info.return_value = issurge.github.OwnerInfo(
+            in_organization=True,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+        run(
+            opts={
+                **default_opts,
+                "<file>": "",
+                "<words>": ["testing", "~this", "issue", "@me", "^45"],
+                "new": True,
+            }
+        )
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "testing this issue",
+            "-b",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "this",
+        ],
+        [
+            "gh",
+            "api",
+            "-X",
+            "POST",
+            "/repos/gwennlbh/gh-api-playground/issues/45/sub_issues",
+            "-F",
+            "sub_issue_id=5",
+            "-F",
+            "replace_parent=true",
+        ],
+    ]
