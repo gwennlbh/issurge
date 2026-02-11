@@ -36,6 +36,7 @@ def available_issue_types():
     response = json.loads(call_api("GET", f"/orgs/{repo.owner}/issue-types") or "[]")
     return [t["name"] for t in response]
 
+@cache
 def issue_id(number: int):
     issue_id = call_repo_api("GET", f"issues/{number}", jq=".id")
     if not issue_id:

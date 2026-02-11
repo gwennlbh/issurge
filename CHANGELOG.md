@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.2] - 2026-02-09
 
+### Added
+
+- Set blocked-by (issue dependencies) with `>n` or `>.n` syntax (use `.n` to set the dependency thru a reference). Also works in the description, the `>` gets replaced with a `#`
+
+### Changed
+
+- Parent issue can be set from within the description. The `^` will be replaced with a `#`.
+
 ### Fixed
 
 - Parent issues would be added by adding the child issue's number instead of id (which resulted in a 404 from github's API)
@@ -28,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     This one has parent #3
     This one also has parent #3
     ^5 This one has parent #5 instead of #3
-  ``` 
-   
+  ```
+
 ## [1.3.0] - 2026-02-09
 
 ### Added
@@ -51,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- A leftover "not stubbed :(" debug log was printed 
+- A leftover "not stubbed :(" debug log was printed
 - One-shot mode message used a weird "Created issue #(number, url)" format
 
 ### Changed

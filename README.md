@@ -62,6 +62,7 @@ Indentation is done with tab characters only.
 - **Milestone:** Prefix with `%` to set the milestone
 - **References:** Prefix with `#.NUMBER` to define a reference for this issue. See [Cross-reference other issues](#cross-reference-other-issues) for more information.
 - **Parent:** Prefix with `^` to set the parent of the issue we're creating to another issue. Use `^NUMBER` to set the parent to an already existing issue, or `^.REFERENCE` to set the parent thru a reference.
+- **Blocked-by**: You can mark other issue(s) as blocking the issue you're creating by using `>NUMBER` or `>.REFERENCE` syntax (use `.REFERENCE` to set the dependency thru a reference). This works in the description as well, and (in the description only) the `>` will be replaced with a `#`, so that the issue gets linked to the blocking issue.
 - **Comments:** You can add comments by prefixing a line with `//`
 - **Description:** To add a description, finish the line with `:`, and put the description on another line (or multiple), just below, indented once more than the issue's line. Exemple:
 
@@ -115,12 +116,15 @@ Second issue:
 
 And that `#.1` in `Needs #.1` will be replaced by the actual issue number of `First issue` when the issue gets created.
 
-You can also use references to set the parent of an issue to another issue that is being created at the same time:
+You can also use references to set the parent of an issue or a blocking dependency:
 
 ```
 #.1 First issue
 
 ^.1 Sub-issue of the first issue
+
+This one is not a sub-issue but:
+  It will not work without it (see >.1)
 ```
 
 > [!WARNING]

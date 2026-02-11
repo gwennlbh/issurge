@@ -53,6 +53,32 @@ class Node:
         return root.as_dict()["root"]
 
 
+# type IssueReference = tuple[Literal["reference", "direct"], int]
+class IssueReference(NamedTuple):
+    type: Literal["reference", "direct"]
+    number: int
+
+    def __str__(self) -> str:
+        match self.type:
+            case "reference":
+                return f".{self.number}"
+            case "direct":
+                return f"{self.number}"
+
+    def resolved(
+        self, resolutions: dict[int, int], strict: bool
+    ) -> "IssueReference | None":
+        if self.type != "reference":
+            return self
+
+        if resolved := resolutions.get(self.number):
+            return IssueReference("direct", resolved)
+
+        if strict:
+            raise Exception(f"Could not resolve reference #{self.number}")
+        return None
+
+
 class Issue(NamedTuple):
     title: str = ""
     description: str = ""
@@ -61,7 +87,8 @@ class Issue(NamedTuple):
     milestone: str = ""
     reference: int | None = None
     # Direct means that the number refers to an actual github issue, where as reference means that it refers to a .N issue reference, in the same way that #.N references work in descriptions.
-    parent: tuple[Literal["reference", "direct"], int] | None = None
+    parent: IssueReference | None = None
+    blocked_by: set[IssueReference] = set()
 
     def __rich_repr__(self):
         yield self.title
@@ -72,6 +99,7 @@ class Issue(NamedTuple):
         yield "ref", self.reference, None
         yield "references", self.references, set()
         yield "parent", self.parent, None
+        yield "blocked_by", self.blocked_by, set()
 
     def __str__(self) -> str:
         result = ""
@@ -79,13 +107,11 @@ class Issue(NamedTuple):
             result += f"<#{self.reference}> "
         result += f"{self.title}" or "<No title>"
         if self.parent:
-            match self.parent:
-                case ("reference", num):
-                    result += f" ^<{num}>"
-                case ("direct", num):
-                    result += f" ^{num}"
+            result += f" ^{self.parent}"
         if self.labels:
             result += f" {' '.join(['~' + l for l in self.labels])}"
+        if self.blocked_by:
+            result += f" {' '.join(['>' + str(ref) for ref in self.blocked_by])}"
         if self.milestone:
             result += f" %{self.milestone}"
         if self.assignees:
@@ -94,19 +120,29 @@ class Issue(NamedTuple):
             result += f": {self.description}"
         return result
 
+    def __or__(self, new_data: "Issue") -> "Issue":
+        return Issue(
+            title=new_data.title or self.title,
+            description=new_data.description or self.description,
+            labels=self.labels | new_data.labels,
+            assignees=self.assignees | new_data.assignees,
+            milestone=new_data.milestone or self.milestone,
+            reference=new_data.reference or self.reference,
+            parent=new_data.parent or self.parent,
+            blocked_by=new_data.blocked_by | self.blocked_by,
+        )
+
     def display(self) -> str:
         result = ""
         if self.reference:
             result += f"[bold blue]<#{self.reference}>[/bold blue] "
         if self.parent:
-            match self.parent:
-                case ("reference", num):
-                    result += f"[blue dim]^<{num}>[/blue dim] "
-                case ("direct", num):
-                    result += f"[blue dim]^{num}[/blue dim] "
+            result += f"[blue dim]^{self.parent}[/blue dim] "
         result += f"[white]{self.title[:30]}[/white]" or "[red]<No title>[/red]"
         if len(self.title) > 30:
             result += " [white dim](...)[/white dim]"
+        if self.blocked_by:
+            result += f" [yellow]{' '.join(['>' + str(ref) for ref in self.blocked_by])}[/yellow]"
         if self.labels:
             result += (
                 f" [yellow]{' '.join(['~' + l for l in self.labels][:4])}[/yellow]"
@@ -144,22 +180,20 @@ class Issue(NamedTuple):
             elif strict:
                 raise Exception(f"Could not resolve reference #.{reference}")
 
-        parent = self.parent
-        match parent:
-            case None:
-                pass
-            case ("direct", _):
-                pass
-            case ("reference", reference):
-                if resolved := resolution_map.get(reference):
-                    parent = ("direct", resolved)
-                elif strict:
-                    raise Exception(f"Could not resolve parent reference ^.{reference}")
-                else:
-                    parent = None
+        parent = self.parent.resolved(resolution_map, strict) if self.parent else None
+
+        blocked_by = {ref.resolved(resolution_map, strict) for ref in self.blocked_by}
+        blocked_by = {ref for ref in blocked_by if ref is not None}
 
         return Issue(
-            **(self._asdict() | {"description": resolved_description, "parent": parent})
+            **(
+                self._asdict()
+                | {
+                    "description": resolved_description,
+                    "parent": parent,
+                    "blocked_by": blocked_by,
+                }
+            )
         )
 
     def submit(self, submitter_args: list[str]) -> tuple[str | None, int | None]:
@@ -255,17 +289,30 @@ class Issue(NamedTuple):
             match self.parent:
                 case None:
                     pass
-                case ("reference", _):
+                case IssueReference("reference", _):
                     raise Exception(
                         "Cannot set a reference-style parent on GitHub, only direct-style"
                     )
 
-                case ("direct", parent_number):
+                case IssueReference("direct", parent_number):
                     github.call_repo_api(
                         "POST",
                         f"issues/{parent_number}/sub_issues",
                         sub_issue_id=github.issue_id(number),
                         replace_parent=True,
+                    )
+
+            if self.blocked_by:
+                if any(ref.type == "reference" for ref in self.blocked_by):
+                    raise Exception(
+                        "Cannot set reference-style blocked_on on GitHub, only direct-style"
+                    )
+
+                for ref in self.blocked_by:
+                    github.call_repo_api(
+                        "POST",
+                        f"issues/{number}/dependencies/blocked_by",
+                        issue_id=github.issue_id(ref.number),
                     )
 
             return url.group(0), number
@@ -281,6 +328,10 @@ class Issue(NamedTuple):
             return "^.", raw_word[2:]
         if raw_word.startswith("^") and raw_word[1:].isdigit():
             return "^", raw_word[1:]
+        if raw_word.startswith(">.") and raw_word[2:].isdigit():
+            return ">.", raw_word[2:]
+        if raw_word.startswith(">") and raw_word[1:].isdigit():
+            return ">", raw_word[1:]
 
         sigil = raw_word[0]
         word = raw_word[1:]
@@ -299,12 +350,13 @@ class Issue(NamedTuple):
             raw = raw[:-1].strip()
 
         title = ""
-        parent: tuple[Literal["reference", "direct"], int] | None = None
+        parent: IssueReference | None = None
         description = ""
-        labels = set()
-        assignees = set()
+        labels: set[str] = set()
+        assignees: set[str] = set()
+        blocked_by: set[IssueReference] = set()
         milestone = ""
-        reference = None
+        reference: int | None = None
         # only labels/milestones/assignees at the beginning or end of the line are not added to the title as words
         add_to_title = False
         remaining_words = [word.strip() for word in raw.split(" ") if word.strip()]
@@ -326,9 +378,13 @@ class Issue(NamedTuple):
                 case "@":
                     assignees.add(word)
                 case "^":
-                    parent = ("direct", int(word))
+                    parent = IssueReference("direct", int(word))
                 case "^.":
-                    parent = ("reference", int(word))
+                    parent = IssueReference("reference", int(word))
+                case ">":
+                    blocked_by.add(IssueReference("direct", int(word)))
+                case ">.":
+                    blocked_by.add(IssueReference("reference", int(word)))
                 case "#.":
                     reference = int(word)
                 case _:
@@ -348,6 +404,7 @@ class Issue(NamedTuple):
                 milestone=milestone,
                 reference=reference,
                 parent=parent,
+                blocked_by=blocked_by,
             ),
             expects_description,
         )
@@ -360,6 +417,47 @@ def tree_to_text(tree: dict[str, Any], recursion_depth=0) -> str:
         if children is not None:
             result += tree_to_text(children, recursion_depth + 1)
     return result
+
+
+def process_description(description: str) -> Issue:
+    """
+    Returns a Issue with the following fields set:
+    - description: the original description, but with >N and >.N, ^N and ^.N replaced by #.N or #N
+    - blocked_by: a set of IssueReferences for each >N and >.N in the description
+    - parent: an IssueReference for the first ^N or ^.N in the description
+    """
+    blocked_by: set[IssueReference] = set()
+    parent: IssueReference | None = None
+
+    # Find >N or >.N in the description
+    for match in re.finditer(r"([>^]\.?)(\d+)", description):
+        sigil, num = match.groups()
+
+        match sigil:
+            case ">":
+                blocked_by.add(IssueReference("direct", int(num)))
+            case ">.":
+                blocked_by.add(IssueReference("reference", int(num)))
+            # Not sure about these
+            case "^":
+                parent = IssueReference("direct", int(num))
+            case "^.":
+                parent = IssueReference("reference", int(num))
+
+        # Replace match with #.N or #N in the description
+        description = (
+            description[: match.start()]
+            + "#"
+            + sigil[1:]
+            + num
+            + description[match.end() :]
+        )
+
+    return Issue(
+        description=description,
+        blocked_by=blocked_by,
+        parent=parent,
+    )
 
 
 def parse_issue_fragment(
@@ -381,36 +479,17 @@ def parse_issue_fragment(
         log(f"[yellow bold]Skipping comment[/]")
         return []
     log(f"Inheriting from {current_issue.display()}")
-    current_title = current_issue.title
-    current_description = current_issue.description
-    current_labels = set(current_issue.labels)
-    current_assignees = set(current_issue.assignees)
-    current_milestone = current_issue.milestone
-    current_parent = current_issue.parent
 
     parsed, expecting_description = Issue.parse(issue_fragment)
+
+    current_issue |= parsed
+
     if expecting_description:
         log(f"[white dim]{parsed} expects a description[/]")
-
-    current_title = parsed.title
-    current_labels |= parsed.labels
-    current_assignees |= parsed.assignees
-    if parsed.milestone:
-        current_milestone = parsed.milestone
-    if expecting_description:
         if children is None:
             raise ValueError(f"Expected a description after {issue_fragment!r}")
-        current_description = tree_to_text(children, 0)
 
-    current_issue = Issue(
-        title=current_title,
-        description=current_description,
-        labels=current_labels,
-        assignees=current_assignees,
-        milestone=current_milestone,
-        reference=parsed.reference,
-        parent=parsed.parent or current_parent,
-    )
+        current_issue |= process_description(tree_to_text(children, 0))
 
     if current_issue.title:
         log(f"Made {current_issue.display()}")

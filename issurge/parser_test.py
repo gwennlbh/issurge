@@ -2,7 +2,7 @@ import textwrap
 
 import pytest
 
-from .parser import Issue, parse
+from .parser import Issue, IssueReference, parse
 
 
 @pytest.mark.parametrize(
@@ -191,18 +191,60 @@ This one has no parent
             """,
             [
                 Issue(title="The parent issue", reference=1),
-                Issue(title="Child one", parent=("reference", 1), labels={"feur"}),
-                Issue(title="Child two", parent=("reference", 1), labels={"feur"}),
+                Issue(
+                    title="Child one",
+                    parent=IssueReference("reference", 1),
+                    labels={"feur"},
+                ),
+                Issue(
+                    title="Child two",
+                    parent=IssueReference("reference", 1),
+                    labels={"feur"},
+                ),
                 Issue(
                     title="Wait no, this one is different!",
-                    parent=("direct", 3),
+                    parent=IssueReference("direct", 3),
                     labels={"feur"},
                 ),
                 Issue(
                     title="This one has no parent",
                 ),
                 Issue(
-                    title="This one has a direct-style parent", parent=("direct", 45)
+                    title="This one has a direct-style parent",
+                    parent=IssueReference("direct", 45),
+                ),
+            ],
+        ),
+        (
+            """
+#.1 The blocking issue
+#.2 Another, itself blocked on >89:
+\tAlso needs >43
+
+^.1 An issue that's blocked on >.1 >43 >.2
+""",
+            [
+                Issue(
+                    title="The blocking issue",
+                    reference=1,
+                ),
+                Issue(
+                    title="Another, itself blocked on",
+                    description="Also needs #43\n",
+                    reference=2,
+                    blocked_by={
+                        IssueReference("direct", 89),
+                        IssueReference("direct", 43),
+                    },
+                ),
+                Issue(
+                    title="An issue that's blocked on",
+                    parent=IssueReference("reference", 1),
+                    blocked_by={
+                        IssueReference("direct", 43),
+                        IssueReference("reference", 2),
+                        IssueReference("reference", 1),
+                    },
                 ),
             ],
         ),

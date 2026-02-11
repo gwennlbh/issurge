@@ -410,7 +410,7 @@ def test_set_issue_parent_direct_style(setup, default_opts):
         patch("issurge.github.repo_info") as repo_info,
         patch("issurge.github.issue_id") as issue_id,
     ):
-        issue_id.return_value = 123456
+        issue_id.side_effect = lambda number: 100000 + number
         repo_info.return_value = issurge.github.OwnerInfo(
             in_organization=True,
             owner="gwennlbh",
@@ -445,8 +445,53 @@ def test_set_issue_parent_direct_style(setup, default_opts):
             "POST",
             "/repos/gwennlbh/gh-api-playground/issues/45/sub_issues",
             "-F",
-            "sub_issue_id=123456",
+            "sub_issue_id=100005",
             "-F",
             "replace_parent=true",
+        ],
+    ]
+
+def test_set_issue_blocked_by(setup, default_opts):
+    with (
+        patch("issurge.github.repo_info") as repo_info,
+        patch("issurge.github.issue_id") as issue_id,
+    ):
+        issue_id.side_effect = lambda number: 100000 + number
+        repo_info.return_value = issurge.github.OwnerInfo(
+            in_organization=True,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+        run(
+            opts={
+                **default_opts,
+                "<file>": "",
+                "<words>": ["testing", "~this", "issue", "@me", ">43"],
+                "new": True,
+            }
+        )
+
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "testing this issue",
+            "-b",
+            "",
+            "-a",
+            "@me",
+            "-l",
+            "this",
+        ],
+        [
+            "gh",
+            "api",
+            "-X",
+            "POST",
+            "/repos/gwennlbh/gh-api-playground/issues/5/dependencies/blocked_by",
+            "-F",
+            "issue_id=100043",
         ],
     ]
