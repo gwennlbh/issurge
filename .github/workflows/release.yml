@@ -37,7 +37,7 @@ jobs:
           echo Changes:
           git diff
       - name: Commit and tag changes
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v10
         if: steps.pyproject.outputs.local_version_is_higher == 'true'
         with:
           message: "🔖 Release ${{ steps.pyproject.outputs.local_version }}"
