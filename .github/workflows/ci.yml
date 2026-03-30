@@ -24,7 +24,7 @@ jobs:
       - name: Run unit tests
         run: uv run pytest
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         if: matrix.is-latest
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
