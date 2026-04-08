@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>gwennlbh/renovate"],
+  "extends": ["github>gwennlbh/renovate", "schedule:monthly"],
   "packageRules": [
     {
       "matchDepTypes": ["devDependencies"],
