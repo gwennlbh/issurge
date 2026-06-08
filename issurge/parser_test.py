@@ -250,21 +250,23 @@ This one has no parent
         ),
         (
             """
-Remove dead links :Platform=Web 
-Remove :Platform=Mobile dead links
-Remove dead links everywhere
+:Fake=Yes
+    Remove dead links :Platform=Web 
+    Remove :Platform=Mobile dead links :Fake=No
+    Remove dead links everywhere
             """,
             [
                 Issue(
                     title="Remove dead links",
-                    fields={"Platform": "Web"},
+                    fields={"Fake": "Yes", "Platform": "Web"},
                 ),
                 Issue(
                     title="Remove Platform=Mobile dead links",
-                    fields={"Platform": "Mobile"},
+                    fields={"Fake": "No", "Platform": "Mobile"},
                 ),
                 Issue(
                     title="Remove dead links everywhere",
+                    fields={"Fake": "Yes"},
                 ),
             ],
         ),
