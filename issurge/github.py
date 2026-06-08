@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 from functools import cache
 from typing import Any, Literal, NamedTuple
 from rich import print
@@ -100,15 +101,46 @@ def call_api(
     cmd += [route]
 
     for key, value in body_fields.items():
-        if type(value) is str:
-            cmd += ["-F", f"{key}={value}"]
-        else:
-            cmd += ["-F", f"{key}={json.dumps(value)}"]
+        for field in serialize_body_field(key, value):
+            cmd += ["-F", field]
 
     if jq:
         cmd += ["--jq", jq]
 
     return run(cmd, bypass_dry_run=bypass_dry_run)
+
+
+def serialize_body_field(key: str, value: Any) -> list[str]:
+    # strings, numbers, booleans and nulls are passed as-is (or json-dumped for non-string primitives)
+    # array and object values are passed with []= and [key]= syntaxes
+    match value:
+        case str():
+            return [f"{key}={value}"]
+        case int() | float() | bool() | None:
+            return [f"{key}={json.dumps(value)}"]
+        case list():
+            # TODO: use [*serialize_body_field(key, item) ...] syntax once we drop support for Python <3.15
+            return list(
+                chain.from_iterable(
+                    [f"{key}[]{ser}" for ser in serialize_body_field("", item)]
+                    for item in value
+                )
+            )
+        case dict():
+            return list(
+                chain.from_iterable(
+                    [
+                        f"{key}[{subkey}]{ser}"
+                        for ser in serialize_body_field("", subvalue)
+                    ]
+                    for subkey, subvalue in value.items()
+                )
+            )
+
+        case _:
+            raise ValueError(
+                f"Unsupported value type for body field {key}: {type(value)}"
+            )
 
 
 def call_repo_api(

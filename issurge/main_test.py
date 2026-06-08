@@ -515,7 +515,9 @@ def test_set_issue_fields(setup, default_opts):
             opts={
                 **default_opts,
                 "<file>": "",
-                "<words>": ["Remove dead links :Platform=Web :Urgency=High :Unknownfield=value"],
+                "<words>": [
+                    "Remove dead links :Platform=Web :Urgency=High :Unknownfield=value"
+                ],
                 "new": True,
             }
         )
@@ -537,6 +539,12 @@ def test_set_issue_fields(setup, default_opts):
             "PUT",
             "/repos/gwennlbh/gh-api-playground/issues/5/issue-field-values",
             "-F",
-            'issue_field_values=[{"field_id": 12345, "value": "Web"}, {"field_id": 67, "value": "High"}]',
+            "issue_field_values[][field_id]=12345",
+            "-F",
+            "issue_field_values[][value]=Web",
+            "-F",
+            "issue_field_values[][field_id]=67",
+            "-F",
+            "issue_field_values[][value]=High",
         ],
     ]

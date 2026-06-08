@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix Github API usage for setting issue field values
+
 ## [1.5.1] - 2026-06-08
 
 ### Fixed
