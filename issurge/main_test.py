@@ -39,6 +39,7 @@ Another ~issue to submit @me"""
     with (
         patch("issurge.github.repo_info") as repo_info,
         patch("issurge.github.available_issue_types") as available_issue_types,
+        patch("issurge.github.available_issue_fields") as available_issue_fields,
     ):
         repo_info.return_value = issurge.github.OwnerInfo(
             in_organization=True,
@@ -46,6 +47,7 @@ Another ~issue to submit @me"""
             repo="gh-api-playground",
         )
         available_issue_types.return_value = []
+        available_issue_fields.return_value = {}
         yield
     Path("test_empty_issues").unlink()
     Path("test_some_issues").unlink()
@@ -451,6 +453,7 @@ def test_set_issue_parent_direct_style(setup, default_opts):
         ],
     ]
 
+
 def test_set_issue_blocked_by(setup, default_opts):
     with (
         patch("issurge.github.repo_info") as repo_info,
@@ -493,5 +496,47 @@ def test_set_issue_blocked_by(setup, default_opts):
             "/repos/gwennlbh/gh-api-playground/issues/5/dependencies/blocked_by",
             "-F",
             "issue_id=100043",
+        ],
+    ]
+
+
+def test_set_issue_fields(setup, default_opts):
+    with (
+        patch("issurge.github.repo_info") as repo_info,
+        patch("issurge.github.available_issue_fields") as available_issue_fields,
+    ):
+        repo_info.return_value = issurge.github.OwnerInfo(
+            in_organization=True,
+            owner="gwennlbh",
+            repo="gh-api-playground",
+        )
+        available_issue_fields.return_value = {"Platform": 12345, "Urgency": 67}
+        run(
+            opts={
+                **default_opts,
+                "<file>": "",
+                "<words>": ["Remove dead links :Platform=Web :Urgency=High :Unknownfield=value"],
+                "new": True,
+            }
+        )
+
+    assert [call.args[0] for call in subprocess.run.mock_calls] == [
+        [
+            "gh",
+            "issue",
+            "new",
+            "-t",
+            "Remove dead links",
+            "-b",
+            "",
+        ],
+        [
+            "gh",
+            "api",
+            "-X",
+            "PUT",
+            "/repos/gwennlbh/gh-api-playground/issues/5/issue-field-values",
+            "-F",
+            'issue_field_values=[{"field_id": 12345, "value": "Web"}, {"field_id": 67, "value": "High"}]',
         ],
     ]

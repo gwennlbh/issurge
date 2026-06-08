@@ -83,6 +83,7 @@ class Issue(NamedTuple):
     title: str = ""
     description: str = ""
     labels: set[str] = set()
+    fields: dict[str, str] = {}
     assignees: set[str] = set()
     milestone: str = ""
     reference: int | None = None
@@ -94,6 +95,7 @@ class Issue(NamedTuple):
         yield self.title
         yield "description", self.description, ""
         yield "labels", self.labels, set()
+        yield "fields", self.fields, {}
         yield "assignees", self.assignees, set()
         yield "milestone", self.milestone, ""
         yield "ref", self.reference, None
@@ -109,13 +111,15 @@ class Issue(NamedTuple):
         if self.parent:
             result += f" ^{self.parent}"
         if self.labels:
-            result += f" {' '.join(['~' + l for l in self.labels])}"
+            result += f" {' '.join([f'~{l}' for l in self.labels])}"
+        if self.fields:
+            result += f" {' '.join([f':{k}={v}' for k, v in self.fields.items()])}"
         if self.blocked_by:
-            result += f" {' '.join(['>' + str(ref) for ref in self.blocked_by])}"
+            result += f" {' '.join([f'>{ref}' for ref in self.blocked_by])}"
         if self.milestone:
             result += f" %{self.milestone}"
         if self.assignees:
-            result += f" {' '.join(['@' + a for a in self.assignees])}"
+            result += f" {' '.join([f'@{a}' for a in self.assignees])}"
         if self.description:
             result += f": {self.description}"
         return result
@@ -125,6 +129,7 @@ class Issue(NamedTuple):
             title=new_data.title or self.title,
             description=new_data.description or self.description,
             labels=self.labels | new_data.labels,
+            fields=self.fields | new_data.fields,
             assignees=self.assignees | new_data.assignees,
             milestone=new_data.milestone or self.milestone,
             reference=new_data.reference or self.reference,
@@ -145,7 +150,7 @@ class Issue(NamedTuple):
             result += f" [yellow]{' '.join(['>' + str(ref) for ref in self.blocked_by])}[/yellow]"
         if self.labels:
             result += (
-                f" [yellow]{' '.join(['~' + l for l in self.labels][:4])}[/yellow]"
+                f" [yellow]{' '.join([f'~{l}' for l in self.labels][:4])}[/yellow]"
             )
             if len(self.labels) > 4:
                 result += " [yellow dim]~...[/yellow dim]"
@@ -257,6 +262,13 @@ class Issue(NamedTuple):
 
         issue_type = issue_types_to_add[0] if issue_types_to_add else None
 
+        available_issue_fields = github.available_issue_fields()
+        issue_fields_to_add = {
+            available_issue_fields[k]: v
+            for k, v in self.fields.items()
+            if k in available_issue_fields
+        }
+
         command = ["gh", "issue", "new"]
         if self.title:
             command += ["-t", self.title]
@@ -284,6 +296,16 @@ class Issue(NamedTuple):
                     "PATCH",
                     f"issues/{number}",
                     type=issue_type,
+                )
+
+            if issue_fields_to_add:
+                github.call_repo_api(
+                    "PUT",
+                    f"issues/{number}/issue-field-values",
+                    issue_field_values=[
+                        {"field_id": k, "value": v}
+                        for k, v in issue_fields_to_add.items()
+                    ],
                 )
 
             match self.parent:
@@ -332,6 +354,8 @@ class Issue(NamedTuple):
             return ">.", raw_word[2:]
         if raw_word.startswith(">") and raw_word[1:].isdigit():
             return ">", raw_word[1:]
+        if raw_word.startswith(":") and raw_word[1:].count("=") == 1:
+            return ":", raw_word[1:]
 
         sigil = raw_word[0]
         word = raw_word[1:]
@@ -353,6 +377,7 @@ class Issue(NamedTuple):
         parent: IssueReference | None = None
         description = ""
         labels: set[str] = set()
+        fields: dict[str, str] = {}
         assignees: set[str] = set()
         blocked_by: set[IssueReference] = set()
         milestone = ""
@@ -373,6 +398,9 @@ class Issue(NamedTuple):
             match sigil:
                 case "~":
                     labels.add(word)
+                case ":":
+                    key, value = word.split("=", 1)
+                    fields[key] = value
                 case "%":
                     milestone = word
                 case "@":
@@ -400,6 +428,7 @@ class Issue(NamedTuple):
                 title=title.strip(),
                 description=description,
                 labels=labels,
+                fields=fields,
                 assignees=assignees,
                 milestone=milestone,
                 reference=reference,
@@ -517,5 +546,5 @@ def parse_issue_fragment(
 def parse(raw: str) -> Iterable[Issue]:
     for item in Node.to_dict(raw).items():
         debug(f"Processing {item!r}")
-        for issue in parse_issue_fragment(*item, Issue("", "", set(), set(), "")):
+        for issue in parse_issue_fragment(*item, Issue("", "", set(), {}, set(), "")):
             yield issue
