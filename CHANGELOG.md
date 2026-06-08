@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Show issue fields in lists of issues on terminal
+
 ## [1.5.2] - 2026-06-08
 
 ### Fixed

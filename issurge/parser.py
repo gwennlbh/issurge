@@ -154,6 +154,10 @@ class Issue(NamedTuple):
             )
             if len(self.labels) > 4:
                 result += " [yellow dim]~...[/yellow dim]"
+        if self.fields:
+            result += f" [yellow]{' '.join([f':{k}={v}' for k, v in self.fields.items()][:4])}[/yellow]"
+            if len(self.fields) > 4:
+                result += " [yellow dim]:...[/yellow dim]"
         if self.milestone:
             result += f" [purple]%{self.milestone}[/purple]"
         if self.assignees:
