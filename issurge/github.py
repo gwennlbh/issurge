@@ -29,12 +29,31 @@ def repo_info():
 
 
 @cache
-def available_issue_types():
+def available_issue_types() -> list[str]:
     repo = repo_info()
+
     if not repo.in_organization:
         return []
-    response = json.loads(call_api("GET", f"/orgs/{repo.owner}/issue-types") or "[]")
-    return [t["name"] for t in response]
+
+    return json.loads(
+        call_api("GET", f"/orgs/{repo.owner}/issue-types", jq="[ .[].name ]") or "[]"
+    )
+
+
+@cache
+def available_issue_fields() -> dict[str, int]:
+    repo = repo_info()
+
+    if not repo.in_organization:
+        return {}
+
+    return json.loads(
+        call_api(
+            "GET", f"/orgs/{repo.owner}/issue-fields", jq="map({(.name): .id}) | add"
+        )
+        or "{}"
+    )
+
 
 @cache
 def issue_id(number: int):
@@ -44,11 +63,11 @@ def issue_id(number: int):
     return int(issue_id)
 
 
-type HTTPMethod = Literal["GET", "POST", "PATCH", "DELETE"]
+type HTTPMethod = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 
 def call_api(
-    method: Literal["GET", "POST", "PATCH", "DELETE"],
+    method: HTTPMethod,
     route: str,
     jq="",
     **body_fields: Any,
@@ -72,7 +91,7 @@ def call_api(
 
 
 def call_repo_api(
-    method: Literal["GET", "POST", "PATCH", "DELETE"],
+    method: HTTPMethod,
     route: str,
     jq="",
     **body_fields: Any,

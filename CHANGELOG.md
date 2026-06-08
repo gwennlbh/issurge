@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for issue fields with `:FIELD=VALUE` in title
+
 ### Fixed
 
 - Mojibake on Windows due to the file not being read as UTF-8

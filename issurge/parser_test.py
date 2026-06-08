@@ -248,6 +248,26 @@ This one has no parent
                 ),
             ],
         ),
+        (
+            """
+Remove dead links :Platform=Web 
+Remove :Platform=Mobile dead links
+Remove dead links everywhere
+            """,
+            [
+                Issue(
+                    title="Remove dead links",
+                    fields={"Platform": "Web"},
+                ),
+                Issue(
+                    title="Remove Platform=Mobile dead links",
+                    fields={"Platform": "Mobile"},
+                ),
+                Issue(
+                    title="Remove dead links everywhere",
+                ),
+            ],
+        ),
     ],
 )
 def test_parse_issues(lines, expected):
