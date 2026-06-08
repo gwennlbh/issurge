@@ -41,7 +41,7 @@ def run(opts=None):
     else:
         print("Submitting issues...")
         references_resolutions: dict[int, int] = {}
-        for issue in parse(Path(opts["<file>"]).read_text()):
+        for issue in parse(Path(opts["<file>"]).read_text(encoding="utf-8")):
             issue = issue.resolve_references(
                 references_resolutions, strict=not dry_running()
             )

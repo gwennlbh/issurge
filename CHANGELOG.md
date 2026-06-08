@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Mojibake on Windows due to the file not being read as UTF-8
+
 ## [1.4.0] - 2026-02-11
 
 ### Added
