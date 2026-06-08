@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Dry-running would not longer be useful due to Github repo info retrievial being dry-runned
+
 ## [1.5.0] - 2026-06-08
 
 ### Added

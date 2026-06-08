@@ -17,12 +17,12 @@ def debug(*args, **kwargs):
         print(*args, **kwargs)
 
 
-def run(command):
+def run(command, bypass_dry_run=False):
     if dry_running() or debugging():
         print(
-            f"{'Would run' if dry_running() else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
+            f"{'Would run' if dry_running() and not bypass_dry_run else 'Running'} [white bold]{subprocess.list2cmdline(command)}[/]"
         )
-    if not dry_running():
+    if not dry_running() or bypass_dry_run:
         try:
             out = subprocess.run(command, check=True, capture_output=True)
             return out.stderr.decode() + "\n" + out.stdout.decode()

@@ -1,6 +1,7 @@
 import json
 from functools import cache
 from typing import Any, Literal, NamedTuple
+from rich import print
 
 from issurge.utils import run
 
@@ -19,7 +20,11 @@ class OwnerInfo(NamedTuple):
 @cache
 def repo_info():
     response = json.loads(
-        run(["gh", "repo", "view", "--json", "isInOrganization,owner,name"]) or "{}"
+        run(
+            ["gh", "repo", "view", "--json", "isInOrganization,owner,name"],
+            bypass_dry_run=True,
+        )
+        or "{}"
     )
     return OwnerInfo(
         in_organization=response["isInOrganization"],
@@ -36,7 +41,13 @@ def available_issue_types() -> list[str]:
         return []
 
     return json.loads(
-        call_api("GET", f"/orgs/{repo.owner}/issue-types", jq="[ .[].name ]") or "[]"
+        call_api(
+            "GET",
+            f"/orgs/{repo.owner}/issue-types",
+            jq="[ .[].name ]",
+            bypass_dry_run=True,
+        )
+        or "[]"
     )
 
 
@@ -49,7 +60,10 @@ def available_issue_fields() -> dict[str, int]:
 
     return json.loads(
         call_api(
-            "GET", f"/orgs/{repo.owner}/issue-fields", jq="map({(.name): .id}) | add"
+            "GET",
+            f"/orgs/{repo.owner}/issue-fields",
+            jq="map({(.name): .id}) | add",
+            bypass_dry_run=True,
         )
         or "{}"
     )
@@ -70,11 +84,18 @@ def call_api(
     method: HTTPMethod,
     route: str,
     jq="",
+    bypass_dry_run=False,
     **body_fields: Any,
 ):
     cmd = ["gh", "api"]
     if method != "GET":
         cmd += ["-X", method]
+
+    if method != "GET" and bypass_dry_run:
+        print(
+            f"Will [bold]not[/] bypass dry-run for non-GET request [white bold]{method} {route}[/]"
+        )
+        bypass_dry_run = False
 
     cmd += [route]
 
@@ -87,7 +108,7 @@ def call_api(
     if jq:
         cmd += ["--jq", jq]
 
-    return run(cmd)
+    return run(cmd, bypass_dry_run=bypass_dry_run)
 
 
 def call_repo_api(
