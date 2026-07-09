@@ -266,11 +266,14 @@ class Issue(NamedTuple):
 
         issue_type = issue_types_to_add[0] if issue_types_to_add else None
 
-        available_issue_fields = github.available_issue_fields()
+        issue_fields = [
+            (github.find_issue_field(label), value)
+            for label, value in self.fields.items()
+        ]
+
         issue_fields_to_add = {
-            available_issue_fields[k]: v
-            for k, v in self.fields.items()
-            if k in available_issue_fields
+            field.id: field.normalize_value(value)
+            for (field, value) in issue_fields
         }
 
         command = ["gh", "issue", "new"]

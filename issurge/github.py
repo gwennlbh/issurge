@@ -1,7 +1,8 @@
 import json
-from itertools import chain
 from functools import cache
+from itertools import chain
 from typing import Any, Literal, NamedTuple
+
 from rich import print
 
 from issurge.utils import run
@@ -52,21 +53,77 @@ def available_issue_types() -> list[str]:
     )
 
 
+type IssueFieldType = Literal["number", "single_select", "text", "date"]
+
+class IssueField(NamedTuple):
+    name: str
+    id: int
+    type: IssueFieldType
+    options: list[str]
+
+    def normalize_value(self, val: Any) -> Any:
+        """
+        Handles casing differences & whitespace stripping
+        for enum-type data
+        """
+
+        if self.type != "single_select": 
+            return val
+
+        # Did you say POTENTIAL??
+        for potential in self.options:
+            if potential.lower() == str(val).lower().strip():
+                return potential
+
+        raise KeyError(
+            f"{val!r} does not match any option for field {self.name!r} ({self.id}): "
+            f"options are {', '.join(self.options)}"
+        )
+
+
 @cache
-def available_issue_fields() -> dict[str, int]:
+def available_issue_fields() -> list[IssueField]:
     repo = repo_info()
 
     if not repo.in_organization:
-        return {}
+        return []
 
-    return json.loads(
+    fields = json.loads(
         call_api(
             "GET",
             f"/orgs/{repo.owner}/issue-fields",
-            jq="map({(.name): .id}) | add",
+            jq="""
+                
+                [
+                
+                .[] | {
+                    id: .id,
+                    name: .name,
+                    type: .data_type,
+                    options: [
+                        (.options // [])[].name
+                    ] 
+                }
+
+                ]
+                
+            """.replace("\n", "").strip(),
             bypass_dry_run=True,
         )
         or "{}"
+    )
+
+    return [IssueField(**field) for field in fields]
+
+
+def find_issue_field(label: str) -> IssueField:
+    for field in available_issue_fields():
+        if field.name.lower() == label.lower().strip():
+            return field
+
+    raise KeyError(
+        f"No issue field named {label!r} exists for this org."
+        f"Available fields: {', '.join(repr(field.name) for field in available_issue_fields())}"
     )
 
 

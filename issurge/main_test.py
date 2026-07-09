@@ -510,17 +510,56 @@ def test_set_issue_fields(setup, default_opts):
             owner="gwennlbh",
             repo="gh-api-playground",
         )
-        available_issue_fields.return_value = {"Platform": 12345, "Urgency": 67}
+
+        available_issue_fields.return_value = [
+            issurge.github.IssueField(
+                name="Platform",
+                id=12345,
+                type="single_select",
+                options=["Web", "Native"],
+            ),
+            issurge.github.IssueField(
+                name="Urgency",
+                id=67,
+                type="single_select",
+                options=["High", "Low", "Osef"],
+            ),
+        ]
+
         run(
             opts={
                 **default_opts,
-                "<file>": "",
-                "<words>": [
-                    "Remove dead links :Platform=Web :Urgency=High :Unknownfield=value"
-                ],
                 "new": True,
+                "<file>": "",
+                "<words>": ["Remove dead links :platform=web :urgency=high"],
             }
         )
+
+        with pytest.raises(
+            KeyError,
+            match=r".*'android' does not match any option for field 'Platform' \(12345\): options are Web, Native.*",
+        ):
+            run(
+                opts={
+                    **default_opts,
+                    "new": True,
+                    "<file>": "",
+                    "<words>": ["Nuh uh :platform=android"],
+                }
+            )
+
+        with pytest.raises(
+            KeyError,
+            match=r".*No issue field named 'unknown' exists for this org.Available fields: 'Platform', 'Urgency'.*",
+        ):
+            run(
+                opts={
+                    **default_opts,
+                    "new": True,
+                    "<file>": "",
+                    "<words>": ["Nuh uh :unknown=android"],
+                }
+            )
 
     assert [call.args[0] for call in subprocess.run.mock_calls] == [
         [
