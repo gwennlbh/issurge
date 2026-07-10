@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-10
+
 ## [1.7.0] - 2026-07-09
 
 ## [1.6.0] - 2026-06-08
@@ -184,7 +186,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0]
 
-[Unreleased]: https://github.com/gwennlbh/issurge/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/gwennlbh/issurge/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/gwennlbh/issurge/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/gwennlbh/issurge/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/gwennlbh/issurge/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/gwennlbh/issurge/compare/v1.5.1...v1.5.2
