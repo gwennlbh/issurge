@@ -500,6 +500,7 @@ def test_set_issue_blocked_by(setup, default_opts):
     ]
 
 
+@pytest.mark.serial
 def test_set_issue_fields(setup, default_opts):
     with (
         patch("issurge.github.repo_info") as repo_info,
@@ -531,7 +532,7 @@ def test_set_issue_fields(setup, default_opts):
                 **default_opts,
                 "new": True,
                 "<file>": "",
-                "<words>": ["Remove dead links :platform=web :urgency=high"],
+                "<words>": ["Remove dead links :web :urgency=high"],
             }
         )
 
@@ -550,7 +551,7 @@ def test_set_issue_fields(setup, default_opts):
 
         with pytest.raises(
             KeyError,
-            match=r".*No issue field named 'unknown' exists for this org.Available fields: 'Platform', 'Urgency'.*",
+            match=r".*No issue field named 'unknown' exists for this org. Available fields: 'Platform', 'Urgency'.*",
         ):
             run(
                 opts={
@@ -558,6 +559,19 @@ def test_set_issue_fields(setup, default_opts):
                     "new": True,
                     "<file>": "",
                     "<words>": ["Nuh uh :unknown=android"],
+                }
+            )
+
+        with pytest.raises(
+            KeyError,
+            match=r".*No shorthand issue field available that corresponds to 'unknown'. Available shorthands: :Web \(:Platform=Web\), :Native \(:Platform=Native\), :High \(:Urgency=High\), :Low \(:Urgency=Low\), :Osef \(:Urgency=Osef\). An issue field's options are available as shorthands if all of them are unique across every field's options.*",
+        ):
+            run(
+                opts={
+                    **default_opts,
+                    "new": True,
+                    "<file>": "",
+                    "<words>": ["some :unknown shorthand"],
                 }
             )
 

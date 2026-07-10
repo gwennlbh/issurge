@@ -27,6 +27,13 @@ from issurge.parser import Issue
                 milestone="milestone",
             ),
         ),
+        (
+            "Some :field=value and a :shorthand here",
+            Issue(
+                title="Some field=value and a shorthand here",
+                fields={"field": "value", "shorthand": None},
+            ),
+        ),
     ],
 )
 def test_create_issue_from_words(words, expected):

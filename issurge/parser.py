@@ -83,7 +83,8 @@ class Issue(NamedTuple):
     title: str = ""
     description: str = ""
     labels: set[str] = set()
-    fields: dict[str, str] = {}
+    # None means the field was entered with a shorthand
+    fields: dict[str, str | None] = {}
     assignees: set[str] = set()
     milestone: str = ""
     reference: int | None = None
@@ -267,13 +268,11 @@ class Issue(NamedTuple):
         issue_type = issue_types_to_add[0] if issue_types_to_add else None
 
         issue_fields = [
-            (github.find_issue_field(label), value)
-            for label, value in self.fields.items()
+            github.process_issue_field_input(*field) for field in self.fields.items()
         ]
 
         issue_fields_to_add = {
-            field.id: field.normalize_value(value)
-            for (field, value) in issue_fields
+            field.id: normalized_value for (field, normalized_value) in issue_fields
         }
 
         command = ["gh", "issue", "new"]
@@ -361,7 +360,7 @@ class Issue(NamedTuple):
             return ">.", raw_word[2:]
         if raw_word.startswith(">") and raw_word[1:].isdigit():
             return ">", raw_word[1:]
-        if raw_word.startswith(":") and raw_word[1:].count("=") == 1:
+        if raw_word.startswith(":"):
             return ":", raw_word[1:]
 
         sigil = raw_word[0]
@@ -384,7 +383,7 @@ class Issue(NamedTuple):
         parent: IssueReference | None = None
         description = ""
         labels: set[str] = set()
-        fields: dict[str, str] = {}
+        fields: dict[str, str | None] = {}
         assignees: set[str] = set()
         blocked_by: set[IssueReference] = set()
         milestone = ""
@@ -406,8 +405,8 @@ class Issue(NamedTuple):
                 case "~":
                     labels.add(word)
                 case ":":
-                    key, value = word.split("=", 1)
-                    fields[key] = value
+                    key, value = word.split("=", 1) if "=" in word else (word, None)
+                    fields[key] = value or None
                 case "%":
                     milestone = word
                 case "@":
