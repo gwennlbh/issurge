@@ -1,4 +1,12 @@
-from issurge.github import serialize_body_field
+from unittest.mock import patch
+
+import pytest
+
+from issurge.github import (
+    IssueField,
+    available_issue_field_shorthands,
+    serialize_body_field,
+)
 
 
 def test_github_serialize_body_field():
@@ -24,3 +32,37 @@ def test_github_serialize_body_field():
         "complex[list][]=2",
         "complex[dict][nested]=yes",
     ]
+
+
+# Due to available_issue_fields
+
+@pytest.mark.serial
+def test_available_issue_field_shorthands():
+    with patch("issurge.github.available_issue_fields") as fields:
+        fields.return_value = [
+            IssueField(
+                name="Priority",
+                id=0,
+                type="single_select",
+                options=["Low", "Medium", "High", "Urgent"],
+            ),
+            IssueField(
+                name="Effort",
+                id=1,
+                type="single_select",
+                options=["Low", "Medium", "High"],
+            ),
+            IssueField(
+                name="Impact",
+                id=2,
+                type="single_select",
+                options=["Tah small", "Vla ioudj"],
+            ),
+        ]
+
+        available = available_issue_field_shorthands()
+
+        assert {s: (f.id, v) for s, (f, v) in available.items()} == {
+            "Tah_small": (2, "Tah small"),
+            "Vla_ioudj": (2, "Vla ioudj"),
+        }

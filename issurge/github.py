@@ -55,6 +55,7 @@ def available_issue_types() -> list[str]:
 
 type IssueFieldType = Literal["number", "single_select", "text", "date"]
 
+
 class IssueField(NamedTuple):
     name: str
     id: int
@@ -67,7 +68,7 @@ class IssueField(NamedTuple):
         for enum-type data
         """
 
-        if self.type != "single_select": 
+        if self.type != "single_select":
             return val
 
         # Did you say POTENTIAL??
@@ -116,14 +117,84 @@ def available_issue_fields() -> list[IssueField]:
     return [IssueField(**field) for field in fields]
 
 
+@cache
+def available_issue_field_shorthands() -> dict[str, tuple[IssueField, str]]:
+    """
+    Returns a dict mapping shorthands (without the : prefix)
+    to their corresponding field(id)+value
+    """
+
+    def into_shorthand(option: str):
+        return option.replace(" ", "_")
+
+    all_fields = available_issue_fields()
+    # TODO: use [ *i for i in a ] once Python 3.15 is released
+    all_enum_values = [
+        into_shorthand(option) for field in all_fields for option in field.options
+    ]
+
+    # TODO: maybe we can avoid the loop + variable altogether once we have
+    # the { *k: v for k, v in a } syntax? (if it exists?)
+
+    shorthands: dict[str, tuple[IssueField, str]] = {}
+
+    for field in all_fields:
+        # All options of this field are unambiguous across all fields' options
+        if all(
+            all_enum_values.count(into_shorthand(option)) == 1
+            for option in field.options
+        ):
+            shorthands |= {
+                into_shorthand(option): (field, option) for option in field.options
+            }
+
+    return shorthands
+
+
+def process_issue_field_input(lhs: str, rhs: str | None) -> tuple[IssueField, str]:
+    """
+    :param lhs: before the =, or the entire thing if there's no = ((str, None) case)
+    :param rhs: after the =, or None if there's no =
+    """
+    if rhs is None:
+        return resolve_issue_field_shorthand(lhs)
+
+    field = find_issue_field(lhs)
+
+    return (field, str(field.normalize_value(rhs)))
+
+
 def find_issue_field(label: str) -> IssueField:
     for field in available_issue_fields():
         if field.name.lower() == label.lower().strip():
             return field
 
     raise KeyError(
-        f"No issue field named {label!r} exists for this org."
+        f"No issue field named {label!r} exists for this org. "
         f"Available fields: {', '.join(repr(field.name) for field in available_issue_fields())}"
+    )
+
+
+def find_issue_field_by_id(field_id: int) -> IssueField:
+    for field in available_issue_fields():
+        if field.id == field_id:
+            return field
+
+    raise KeyError(
+        f"No issue field with id {field_id} exists for this org."
+        f"Available fields: {', '.join(f'{field.id} ({field.name})' for field in available_issue_fields())}"
+    )
+
+
+def resolve_issue_field_shorthand(shorthand: str) -> tuple[IssueField, str]:
+    for candidate, (field, option) in available_issue_field_shorthands().items():
+        if candidate.lower() == shorthand.strip().lower():
+            return (field, option)
+
+    raise KeyError(
+        f"No shorthand issue field available that corresponds to {shorthand!r}. "
+        f"Available shorthands: {', '.join(f':{short} (:{field.name}={value})' for short, (field, value) in available_issue_field_shorthands().items())}. "
+        f"An issue field's options are available as shorthands if all of them are unique across every field's options"
     )
 
 
