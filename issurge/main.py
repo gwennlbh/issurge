@@ -13,6 +13,8 @@ Options:
     --dry-run   Don't actually post the issues
     --debug     Print debug information
     --open      Open every created issue in the browser
+
+issurge v{version}
 """
 
 import os
@@ -22,13 +24,14 @@ import webbrowser
 from docopt import docopt
 from rich import print
 
+from importlib.metadata import version
 from issurge.parser import parse
 from issurge.utils import debug, dry_running
 from issurge import interactive
 
 
 def run(opts=None):
-    opts = opts or docopt(__doc__)
+    opts = opts or docopt((__doc__ or "").format(version=version("issurge")))
     os.environ["ISSURGE_DEBUG"] = "1" if opts["--debug"] else ""
     os.environ["ISSURGE_DRY_RUN"] = "1" if opts["--dry-run"] else ""
 
