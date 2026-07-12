@@ -65,7 +65,7 @@ Indentation is done with tab characters only.
 - **Blocked-by**: You can mark other issue(s) as blocking the issue you're creating by using `>NUMBER` or `>.REFERENCE` syntax (use `.REFERENCE` to set the dependency thru a reference). This works in the description as well, and (in the description only) the `>` will be replaced with a `#`, so that the issue gets linked to the blocking issue.
 - **Comments:** You can add comments by prefixing a line with `//`
 - **Description:** To add a description, finish the line with `:`, and put the description on another line (or multiple), just below, indented once more than the issue's line. Exemple:
-- **Issue fields:** To set an issue field, use `:FIELD=VALUE`. For example, `thing :Area=App` will set the `Area` issue field to `App`.  
+- **Issue fields:** To set an issue field, use `:FIELD=VALUE`. For example, `thing :Area=App` will set the `Area` issue field to `App`.  If you have a single-select ("enum") field with all of its options being unambiguous (not clashing with any other option from any other single-select field of the org), you can shorten the syntax to `:VALUE`. Both field names and option names are case-insensitive, so you can avoid having to enter uppercase letters.
 
   ```
   My superb issue ~some-tag:
