@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.8.0] - 2026-07-10
 
+### Added
+
+- Shorthand issue fields syntax: use `:option` instead of `:field=option` when the option is unambiguous
+
 ## [1.7.0] - 2026-07-09
+
+- Make issue fields & options case-insensitive in the `:field=value` syntax
 
 ## [1.6.0] - 2026-06-08
 
