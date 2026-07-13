@@ -1,6 +1,9 @@
+import io
 import os
 import subprocess
+from typing import Any
 
+import rich
 from rich import print
 
 
@@ -34,3 +37,20 @@ def run(command, bypass_dry_run=False):
 
 TAB = "\t"
 NEWLINE = "\n"
+
+
+def lines_between(start, end, text):
+    inside = False
+    for line in text.splitlines():
+        if line.strip() == start:
+            inside = True
+        elif line.strip() == end:
+            inside = False
+        elif inside:
+            yield line
+
+
+def render_to_ansi(renderable: Any) -> str:
+    console = rich.console.Console(file=io.StringIO())
+    console.print(renderable)
+    return console.file.getvalue()  # pyright: ignore[reportAttributeAccessIssue]
