@@ -65,6 +65,7 @@ def default_opts():
         "--dry-run": False,
         "--debug": False,
         "--open": False,
+        "--help-syntax": False
     }
 
 
