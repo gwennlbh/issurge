@@ -21,7 +21,7 @@ jobs:
           ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }} 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: "3.14.4"
+          python-version: "3.14.7"
       - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
       - run: uv run bumpver update --${{ inputs.bump }}
       - name: Get new version
