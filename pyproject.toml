@@ -3,7 +3,7 @@ name = "issurge"
 version = "1.8.0"
 description = "Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file."
 authors = [{ name = "Gwenn Le Bihan", email = "gwenn.lebihan7@gmail.com" }]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 readme = "README.md"
 dependencies = [
     "rich>=15.0.0,<16",
@@ -13,9 +13,9 @@ dependencies = [
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.12",
 	"Programming Language :: Python :: 3.13",
 	"Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 [project.urls]
