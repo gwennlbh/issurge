@@ -1,12 +1,10 @@
+---
 name: builds
-
 on:
   push:
     branches: [develop, main]
-    tags:
-      - "v\\d+\\.\\d+\\.\\d+[ab]?"
+    tags: ['v\d+\.\d+\.\d+[ab]?']
   workflow_dispatch:
-
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -16,15 +14,15 @@ jobs:
         python-version: [3.12, 3.13, 3.14, 3.15]
         is-latest: [false, false, true]
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
+      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951  # v4
       - name: Run unit tests
         run: uv run pytest
       - name: Upload coverage
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7
         if: matrix.is-latest
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -32,10 +30,9 @@ jobs:
           fail_ci_if_error: true
       - name: Upload test results to Codecov
         if: matrix.is-latest && !cancelled()
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3  # v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
   upload-package:
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
@@ -43,11 +40,11 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
-          python-version: "3.15.1"
-      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
+          python-version: 3.15.1
+      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951  # v4
       - name: Run unit tests
         run: uv run pytest
       - name: Build Python package
@@ -65,7 +62,7 @@ jobs:
           echo "Release notes: ${{ steps.changelog.outputs.releaseNotes }}"
           echo "Release version: ${{ github.ref_name }}"
       - name: Create github release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
         with:
           files: dist/*
           body: ${{ steps.changelog.outputs.releaseNotes }}
@@ -80,5 +77,5 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_PRIVATE_KEY }}
-          commit_message: "Update to ${{ github.ref_name }}"
+          commit_message: Update to ${{ github.ref_name }}
           ssh_keyscan_types: rsa,ecdsa,ed25519

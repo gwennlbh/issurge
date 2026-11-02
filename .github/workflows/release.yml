@@ -1,5 +1,5 @@
+---
 name: Trigger release
-
 on:
   workflow_dispatch:
     inputs:
@@ -8,25 +8,23 @@ on:
         required: true
         type: choice
         options: [patch, minor, major]
-
 permissions:
   contents: write
-
 jobs:
   trigger-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
-          ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }} 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+          ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
-          python-version: "3.15.1"
-      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
+          python-version: 3.15.1
+      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951  # v4
       - run: uv run bumpver update --${{ inputs.bump }}
       - name: Get new version
         id: pyproject
-        uses: maybe-hello-world/pyproject-check-version@cb964e82b3c8a0b1cedb117da63e1761c46600b8 # v4
+        uses: maybe-hello-world/pyproject-check-version@cb964e82b3c8a0b1cedb117da63e1761c46600b8  # v4
       - name: Update changelog
         if: steps.pyproject.outputs.local_version_is_higher == 'true'
         run: uv run keepachangelog release ${{  steps.pyproject.outputs.local_version }}
@@ -37,9 +35,8 @@ jobs:
           echo Changes:
           git diff
       - name: Commit and tag changes
-        uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10
+        uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321  # v10
         if: steps.pyproject.outputs.local_version_is_higher == 'true'
         with:
-          message: "🔖 Release ${{ steps.pyproject.outputs.local_version }}"
+          message: 🔖 Release ${{ steps.pyproject.outputs.local_version }}
           tag: v${{ steps.pyproject.outputs.local_version }}
-
