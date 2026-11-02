@@ -6,13 +6,20 @@ on:
     tags: ['v\d+\.\d+\.\d+[ab]?']
   workflow_dispatch:
 jobs:
-  check:
+  test:
     runs-on: ubuntu-latest
     if: github.ref_type != 'tag'
     strategy:
       matrix:
-        python-version: [3.12, 3.13, 3.14, 3.15]
-        is-latest: [false, false, true]
+        include:
+          - python-version: '3.12'
+            is-latest: false
+          - python-version: '3.13'
+            is-latest: false
+          - python-version: '3.14'
+            is-latest: false
+          - python-version: '3.15'
+            is-latest: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7

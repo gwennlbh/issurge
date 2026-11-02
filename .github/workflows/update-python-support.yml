@@ -1,0 +1,42 @@
+---
+name: Update Python support
+on:
+  push:
+    branches: [renovate/python-3.x, ci-python-updates]
+permissions:
+  contents: write
+concurrency:
+  group: update-python-support-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: 3.14.4
+      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951  # v4
+      - name: Update Python support configuration
+        run: uv run scripts/update_python_version.py
+      - name: Fix formatting
+        run: |
+          uvx yamlfix .github/workflows/
+          uvx pypfmt pyproject.toml
+      - name: Update lock file
+        run: uv sync
+      - name: Commit migration changes
+        run: |-
+          if git diff --quiet; then
+            echo "Python support configuration is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml .github/workflows/ci.yml \
+            .github/workflows/pr.yml .github/workflows/release.yml
+          git commit -m "📦️ Update supported Python versions"
+          git push
