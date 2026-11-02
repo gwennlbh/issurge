@@ -36,6 +36,7 @@ def test_github_serialize_body_field():
 
 # Due to available_issue_fields
 
+
 @pytest.mark.serial
 def test_available_issue_field_shorthands():
     with patch("issurge.github.available_issue_fields") as fields:
