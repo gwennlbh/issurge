@@ -1,0 +1,37 @@
+---
+name: Format code
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+concurrency:
+  group: update-python-support-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ssh-key: ${{ secrets.AUTOCOMMITS_DEPLOY_KEY }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: 3.14.4
+      - uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
+      - name: Fix formatting
+        run: |
+          uvx ruff format .
+          uvx yamlfix .github/workflows/
+          uvx pypfmt pyproject.toml
+      - name: Commit changes
+        run: |-
+          if git diff --quiet; then
+            echo Nothing to commit, exiting.
+            exit 0
+          fi
+          git add .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "️🎨 Format code"
+          git push

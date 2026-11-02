@@ -2,34 +2,40 @@
 name = "issurge"
 version = "1.8.0"
 description = "Deal with your client's feedback efficiently by creating a bunch of issues in bulk from a text file."
-authors = [{ name = "Gwenn Le Bihan", email = "gwenn.lebihan7@gmail.com" }]
-requires-python = ">=3.13"
 readme = "README.md"
-dependencies = [
-    "rich>=15.0.0,<16",
-    "docopt>=0.6.2,<0.7",
-    "pytest-antilru>=2.0.1",
-]
+authors = [{ name = "Gwenn Le Bihan", email = "gwenn.lebihan7@gmail.com" }]
 classifiers = [
-	"Development Status :: 5 - Production/Stable",
-	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.13",
-	"Programming Language :: Python :: 3.14",
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
 ]
+requires-python = ">=3.13"
+dependencies = [
+    "docopt>=0.6.2,<0.7",
+    "pytest-antilru>=2.0.1",
+    "rich>=15.0.0,<16",
+]
+
+[project.scripts]
+issurge = "issurge.main:run"
 
 [project.urls]
 Repository = "https://github.com/gwennlbh/issurge"
 
-[project.scripts]
-issurge = "issurge.main:run"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
     "bumpver>=2026.1132",
     "keepachangelog>=2.0.0",
-    "pytest>=9.1.1",
+    "pypfmt>=1.1.15",
     "pytest-cov>=7.1.0",
+    "pytest>=9.1.1",
+    "yamlfix>=1.19.1",
 ]
 
 [tool.uv]
@@ -38,20 +44,13 @@ dev = [
 addopts = "--cov --cov-report xml --junitxml=junit.xml -o junit_family=legacy"
 
 [tool.bumpver]
+commit = false
 current_version = "1.8.0"
-version_pattern = "MAJOR.MINOR.PATCH"
+push = false
+tag = false
 tag_message = "v{new_version}"
 tag_scope = "default"
-commit = false
-tag = false
-push = false
+version_pattern = "MAJOR.MINOR.PATCH"
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-	'version = "{version}"',
-]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
